@@ -36,6 +36,60 @@ class ButtonFilled extends MaterialButton{
   }
 }
 
+class ButtonChoices extends MaterialButton{
+
+  final double width;
+  final double height;
+  final double fontSize;
+  final String text;
+  final Color backgroundColor;
+  final FontWeight fontWeight;
+  final Color fontColor;
+
+
+  ButtonChoices({this.width , this.height , this.fontSize , this.text , this.backgroundColor , this.fontWeight , this.fontColor});
+
+  @override
+
+  Widget build(BuildContext context){
+    bool choice;
+    return MaterialButton(
+      height: displayHeight(context) * height,
+      minWidth: displayWidth(context) * width,
+      onPressed: (){
+        
+      },
+      
+      color: choice == true ? backgroundColor : Color(0xffffffff),
+      child: Text(
+        text,
+        style: TextStyle(
+          fontSize: fontSize,
+          fontWeight: fontWeight,
+          color: choice == true ? fontColor : Color(0xff555555),
+        ),
+      ),
+    );
+  }
+
+}
+
+                    // child: DatePicker(
+                    //         DateTime.now(),
+                    //         dateTextStyle: TextStyle(
+                    //           backgroundColor: Colors.red,
+                    //         ),
+                    //         initialSelectedDate: DateTime.now(),
+                    //         selectionColor: Colors.black,
+                    //         selectedTextColor: Colors.white,
+                    //         onDateChange: (date){
+                              
+                    //           setState(() {
+                                
+                    //           });
+                    //         },                
+                    // ),
+
 class TextLink extends Text{
 
   final String text;
@@ -76,8 +130,12 @@ class IconLink extends GestureDetector{
   Widget build(BuildContext context){
     return GestureDetector(
       onTap: (){
-        Route route = MaterialPageRoute(builder: (context) => nextPage);
-        Navigator.push(context , route);
+        // Route route = MaterialPageRoute(builder: (context) => nextPage);
+        // Navigator.push(context , route);
+        Future.delayed(Duration.zero, (){
+          Navigator.of(context).push(MaterialPageRoute(builder: (_) => nextPage));
+        });
+        
       },
       child: Row(
         children: <Widget>[
@@ -128,6 +186,31 @@ class DeleteRecord extends StatelessWidget{
         ),
         FlatButton(
           child: Text("No"),
+          onPressed: (){
+            Navigator.of(context).pop(false);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+
+class ErrorMessage extends StatelessWidget{
+
+  final String header;
+  final String text;
+
+  ErrorMessage({this.header , this.text});
+
+  @override
+  Widget build(BuildContext context){
+    return AlertDialog(
+      title: Text(header),
+      content: Text(text),
+      actions: <Widget>[
+        FlatButton(
+          child: Text("Ok"),
           onPressed: (){
             Navigator.of(context).pop(false);
           },

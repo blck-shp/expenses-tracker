@@ -1,6 +1,9 @@
+import 'package:expenses_tracker/Main/dashboard.dart';
 import 'package:flutter/material.dart';
-import 'package:expenses_tracker/Extras/extras.dart';
-import 'dashboard.dart';
+
+import 'dart:async';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class Login extends StatefulWidget{
   @override
@@ -12,13 +15,18 @@ class _Login extends State<Login>{
   TextEditingController _controller1 = TextEditingController();
   TextEditingController _controller2 = TextEditingController();
 
+  Account account;
+
+  Future<Account> _futureAccount;
+
   @override
   Widget build(BuildContext context){
     return Scaffold(
       backgroundColor: Color(0xffd8fcff),
       resizeToAvoidBottomInset: false,
       body: Container(
-        child: Column(
+        child: (_futureAccount == null)
+        ? Column(
           children: <Widget>[
             Expanded(
               child: Column(
@@ -130,7 +138,15 @@ class _Login extends State<Login>{
                   Expanded(
                     child: Container(
                       margin: EdgeInsets.only(top: 10.0 , bottom: 10.0),
-                      child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "LOGIN" , backgroundColor: Color(0xffffffff), fontWeight: FontWeight.bold, nextPage: Dashboard()),
+                      child: RaisedButton(
+                        onPressed: (){
+                          setState(() {
+                            _futureAccount = createAccount(_controller1.text , _controller2.text);
+                          });
+                        },
+                        child: Text("Login"),
+                      ),
+                      // child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "LOGIN" , backgroundColor: Color(0xffffffff), fontWeight: FontWeight.bold, nextPage: Dashboard() , check: true),
                     ),
                   ),
                   Expanded(
@@ -141,8 +157,59 @@ class _Login extends State<Login>{
               ),
             ),
           ],
+        ) 
+        : FutureBuilder<Account>(
+          future: _futureAccount,
+          builder: (context , snapshot){
+            if(snapshot.hasData){
+              if(snapshot.data.message == 'Successfully signed in!'){
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Dashboard()));
+              }
+            }else if(snapshot.hasError){
+              return Center(child: Text('${snapshot.error}'));
+            }
+            return Center(child: CircularProgressIndicator());
+          },
         ),
       ),
+    );
+  }
+}
+
+
+
+Future<Account> createAccount(String email , String password) async{
+  final http.Response response = await http.post('http://expenses.koda.ws/api/v1/sign_in',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Accept': 'application/json',
+    },
+    body: jsonEncode(<String , String>{
+      'email': email,
+      'password': password
+    }),
+  );
+
+  print('The email is $email');
+  print('The password is $password');
+
+  print('The status code is ${response.statusCode}');
+
+  if(response.statusCode == 200){
+    return Account.fromJson(json.decode(response.body));
+  }else{
+    throw Exception('Failed to login');
+  }
+}
+
+class Account{
+  String message;
+
+  Account({this.message});
+
+  factory Account.fromJson(Map<String, dynamic> json){
+    return Account(
+      message: json['message'],
     );
   }
 }

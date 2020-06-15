@@ -17,6 +17,8 @@ Future<Account> createAccount(Account account) async{
   final http.Response response = await http.post('http://expenses.koda.ws/api/v1/sign_up',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
+      'Accept': 'application/json',
+      
     },
     body: jsonEncode(<String , String>{
       'name': account.name,
@@ -121,7 +123,6 @@ class _Post extends State<Post>{
                     Account account = new Account(name: _controller1.text , email: _controller2.text , password: _controller3.text);
 
                     setState(() {
-                      // _futureAccount = createAccount(_controller1.text , _controller2.text , _controller3.text);
                       _futureAccount = createAccount(account);
                     });
                   },

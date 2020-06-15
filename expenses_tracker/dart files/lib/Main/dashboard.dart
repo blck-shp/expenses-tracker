@@ -4,8 +4,12 @@ import 'package:flutter/material.dart';
 import 'onboarding.dart';
 import 'records.dart';
 
+class Dashboard extends StatefulWidget{
+  @override
+  _Dashboard createState() => _Dashboard();
+}
 
-class Dashboard extends StatelessWidget{
+class _Dashboard extends State<Dashboard>{
 
   @override
   Widget build(BuildContext context){

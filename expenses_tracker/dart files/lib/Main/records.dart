@@ -1,10 +1,10 @@
 import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:expenses_tracker/Main/modify_record.dart';
+import 'package:expenses_tracker/Practices/fetch.dart';
 import 'package:flutter/material.dart';
 
 import 'dashboard.dart';
 import 'onboarding.dart';
-import 'package:expenses_tracker/API/fetch.dart';
 
 
 class Records extends StatelessWidget{
@@ -64,7 +64,7 @@ class Records extends StatelessWidget{
           ),
         ),
       ),
-      floatingActionButton: FloatingButton(nextPage: Records(),),
+      floatingActionButton: FloatingButton(nextPage: ModifyRecord(),),
       body: FutureBuilder<CategoryList>(
         future: getList(),
         builder: (context , snapshot){
@@ -84,7 +84,7 @@ class Records extends StatelessWidget{
                   confirmDismiss: (direction) async{
                     final result = await showDialog(
                       context: context,
-                      builder: (_) => AlertDialog(),
+                      builder: (_) => DeleteRecord(),
                     );
                     return result;
                   },
@@ -96,13 +96,20 @@ class Records extends StatelessWidget{
                   child: ListTile(
                     title: Text(snapshot.data.categories[index].name),
                     subtitle: Text(snapshot.data.categories[index].icon),
+
                     onTap: (){
                       Navigator.of(context).push(MaterialPageRoute(builder: (_) => ModifyRecord(isEmpty: false,)));
+                    },
+                    onLongPress: (){
+                      showDialog(
+                        context: context,
+                        builder: (_) => DeleteRecord(),
+                      );
                     },
                   ),
                 );
               }, 
-              separatorBuilder: (_, __) => Divider(height: 1.0 , color: Color(0xff246c55)), 
+              separatorBuilder: (_, __) => Divider(height: 0),
               itemCount: snapshot.data.categories.length,
             );
           }else{

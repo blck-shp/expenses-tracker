@@ -102,7 +102,7 @@ class _Onboarding extends State<Onboarding>{
                   Expanded(
                     child: Container(
                       margin: EdgeInsets.only(top: 10.0 , bottom: 10.0),
-                      child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "SIGN UP" , backgroundColor: Color(0xffffffff), fontWeight: FontWeight.bold, nextPage: Registration()),
+                      child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "SIGN UP" , backgroundColor: Color(0xffffffff), fontWeight: FontWeight.bold, nextPage: Registration(),),
                     ),
                   ),
                   Expanded(
