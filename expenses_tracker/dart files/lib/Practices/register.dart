@@ -7,6 +7,9 @@ import 'dart:math';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
+
+// REGISTER
+
 Future<Account> createAccount(String name , String email,  String password, String hash) async{
   // String token = await Candidate().getToken();
   final http.Response response = await http.post('http://expenses.koda.ws/api/v1/sign_up',

@@ -1,3 +1,5 @@
+// import 'package:expenses_tracker/Extras/extras.dart';
+import 'package:expenses_tracker/Extras/sizes.dart';
 import 'package:expenses_tracker/Main/dashboard.dart';
 import 'package:flutter/material.dart';
 
@@ -138,15 +140,23 @@ class _Login extends State<Login>{
                   Expanded(
                     child: Container(
                       margin: EdgeInsets.only(top: 10.0 , bottom: 10.0),
-                      child: RaisedButton(
+                      child: MaterialButton(
+                        color: Color(0xffffffff),
+                        minWidth: displayWidth(context) * .75,
                         onPressed: (){
                           setState(() {
                             _futureAccount = createAccount(_controller1.text , _controller2.text);
                           });
                         },
-                        child: Text("Login"),
+                        child: Text("Login", 
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        
                       ),
-                      // child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "LOGIN" , backgroundColor: Color(0xffffffff), fontWeight: FontWeight.bold, nextPage: Dashboard() , check: true),
+                      // child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "LOGIN" , backgroundColor: Color(0xffffffff), fontWeight: FontWeight.bold, nextPage: Dashboard()),
                     ),
                   ),
                   Expanded(
@@ -163,10 +173,16 @@ class _Login extends State<Login>{
           builder: (context , snapshot){
             if(snapshot.hasData){
               if(snapshot.data.message == 'Successfully signed in!'){
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Dashboard()));
+                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Dashboard(hash: snapshot.data.token)));
               }
             }else if(snapshot.hasError){
-              return Center(child: Text('${snapshot.error}'));
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => Login()));
+              return Center(
+                child: Text('${snapshot.error}'),
+                
+              );
+              
+              
             }
             return Center(child: CircularProgressIndicator());
           },
@@ -198,18 +214,21 @@ Future<Account> createAccount(String email , String password) async{
   if(response.statusCode == 200){
     return Account.fromJson(json.decode(response.body));
   }else{
+    
     throw Exception('Failed to login');
   }
 }
 
 class Account{
   String message;
+  String token;
 
-  Account({this.message});
+  Account({this.message , this.token});
 
   factory Account.fromJson(Map<String, dynamic> json){
     return Account(
       message: json['message'],
+      token: json['token']
     );
   }
 }

@@ -1,3 +1,4 @@
+import 'package:expenses_tracker/Extras/sizes.dart';
 import 'package:flutter/material.dart';
 import 'package:expenses_tracker/Extras/extras.dart';
 
@@ -7,7 +8,9 @@ import 'dart:math';
 import 'dart:convert';
 import 'package:crypto/crypto.dart';
 
-Future<Account> createAccount(String name , String email,  String password, String hash) async{
+import 'dashboard.dart';
+
+Future<http.Response> createAccount(String name , String email,  String password, String hash) async{
   final http.Response response = await http.post('http://expenses.koda.ws/api/v1/sign_up',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
@@ -23,27 +26,30 @@ Future<Account> createAccount(String name , String email,  String password, Stri
 
   print('The email is $email');
   print('The password is $password');
-
   print('The status code is ${response.statusCode}');
 
+  var message;
+  var error;
+
+  dynamic fromJsonMessage(Map<String, dynamic> json){
+    return json['message'];
+  }
+
+  dynamic fromJsonError(Map<String, dynamic> json){
+    return json['error'];
+  }
+
   if(response.statusCode == 200){
-    return Account.fromJson(json.decode(response.body));
+    message = fromJsonMessage(json.decode(response.body));
+    // print('The message is $message');
+    return message;
   }else{
-    throw Exception('Failed to login');
+    error = fromJsonError(json.decode(response.body));
+    // print('The message is $error');
+    return error;
   }
 }
 
-class Account{
-  String message;
-
-  Account({this.message});
-
-  factory Account.fromJson(Map<String, dynamic> json){
-    return Account(
-      message: json['message'],
-    );
-  }
-}
 
 
 String generateMd5(String input){
@@ -62,7 +68,7 @@ class _Registration extends State<Registration>{
   TextEditingController _controller3 = TextEditingController();
   TextEditingController _controller4 = TextEditingController();
 
-  Future<Account> _futureAccount;
+  Future<http.Response> _futureAccount;
   List numbers = [];
 
   @override
@@ -237,8 +243,10 @@ class _Registration extends State<Registration>{
                   Expanded(
                     child: Container(
                       margin: EdgeInsets.only(top: 10.0 , bottom: 10.0),
-                      // child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "SIGN UP" , backgroundColor: Color(0xffffffff), fontWeight: FontWeight.bold, nextPage: Registration(), check: false),
-                      child: RaisedButton(
+                      child: MaterialButton(
+                        color: Color(0xffffffff),
+                        minWidth: displayWidth(context) * .75,
+
                         onPressed: (){
                           setState(() {
                               if(_controller3.text == _controller4.text){
@@ -276,7 +284,11 @@ class _Registration extends State<Registration>{
                               }
                           });
                         },
-                        child: Text("Login"),
+                        child: Text("Login",
+                          style: TextStyle(fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                       ),
                     ),
                   ),
@@ -289,13 +301,25 @@ class _Registration extends State<Registration>{
             ),
           ],
         )
-        : FutureBuilder<Account>(
+        : FutureBuilder<http.Response>(
               future: _futureAccount,
               builder: (context , snapshot){
                 if(snapshot.hasData){
-                  return Center(child: Text('${snapshot.data.message}'));
+                  // return Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard));
+                  // return Center();
+                  // return Center(child: Text('${snapshot.data}'));
+                  print('The account has been created!');
+
+                  setState(() {
+                    Route route = MaterialPageRoute(builder: (context) => Dashboard());
+                    Navigator.push(context , route); 
+                    return Center(child: Text('The account has been created!'));
+                  });
+                  // return Center(child: Text('${snapshot.data}'));
+                  // return Route route = MaterialPageRoute(builder: (context) => Dashboard());
+                  // Navigator.push(context , route); 
                 }else if(snapshot.hasError){
-                  return Center(child: Text('${snapshot.error}'));
+                  // return Center(child: Text('${snapshot.error.toString()}'));
                 }
                 return Center(child: CircularProgressIndicator());
               },
