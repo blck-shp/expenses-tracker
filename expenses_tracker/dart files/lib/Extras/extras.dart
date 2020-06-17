@@ -1,3 +1,4 @@
+import 'package:expenses_tracker/Main/login.dart';
 import 'package:flutter/material.dart';
 import 'sizes.dart';
 
@@ -210,9 +211,33 @@ class ErrorMessage extends StatelessWidget{
       content: Text(text),
       actions: <Widget>[
         FlatButton(
-          child: Text("Ok"),
+          child: Text("OK"),
           onPressed: (){
             Navigator.of(context).pop(false);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class ErrorLogin extends StatefulWidget{
+  @override
+  _ErrorLogin createState() => _ErrorLogin();
+}
+
+class _ErrorLogin extends State<ErrorLogin>{
+  @override
+  Widget build(BuildContext context){
+    return AlertDialog(
+      title: Text('Error'),
+      content: Text('Please try again'),
+      actions: <Widget>[
+        FlatButton(
+          child: Text("OK"),
+          onPressed: (){
+            // Navigator.of(context).pop(false);
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => Login()));
           },
         ),
       ],

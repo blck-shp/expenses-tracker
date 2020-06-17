@@ -2,11 +2,16 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:expenses_tracker/Extras/extras.dart';
+import 'package:expenses_tracker/Extras/sizes.dart';
 import 'package:expenses_tracker/Main/modify_record.dart';
 import 'package:expenses_tracker/Main/records.dart';
+// import 'package:expenses_tracker/Practices/fetch.dart';
 import 'package:flutter/material.dart';
 import 'onboarding.dart';
 import 'package:http/http.dart' as http;
+import 'package:charts_flutter/flutter.dart' as charts;
+
+// import 'package:charts_flutter/flutter.dart' as charts;
 
 
 class Dashboard extends StatefulWidget{
@@ -25,11 +30,11 @@ class _Dashboard extends State<Dashboard>{
 
   _Dashboard({this.hash});
 
-  
   @override
   Widget build(BuildContext context){
     print('The value of hash is $hash');
     return Scaffold(
+      backgroundColor: Color(0xffeeeeee),
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: Text('Home'),
@@ -49,10 +54,10 @@ class _Dashboard extends State<Dashboard>{
                 child: Column(
                   children: <Widget>[
                     Expanded(
-                      child: IconLink(text: "HOME" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Dashboard()),
+                      child: IconLink(text: "HOME" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Dashboard(hash: hash,)),
                     ),
                     Expanded(
-                      child: IconLink(text: "RECORDS" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Records()),
+                      child: IconLink(text: "RECORDS" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Records(hash: hash,)),
                     ),
                     Expanded(
                       child: IconLink(text: "LOGOUT" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Onboarding()),
@@ -69,10 +74,6 @@ class _Dashboard extends State<Dashboard>{
         ),
       ),
       floatingActionButton: FloatingButton(nextPage: ModifyRecord(isEmpty: true,),),
-      // body: Center(
-      //   child: Text('$_recordsCategory'),
-      // ),
-
       body: FutureBuilder<RecordsCategory>(
         future: getRecords(hash),
         builder: (context , snapshot){
@@ -81,7 +82,87 @@ class _Dashboard extends State<Dashboard>{
                 if(snapshot.data.pagination.count == 0){
                   return EmptyDashboard();
                 }else{
-                  return Center(child: Text('Category Name: ${snapshot.data.records[0].category.name}'));
+                  return Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: Container(
+                          // width: displayWidth(context) * .90,
+                          child: Card(
+                            child: Container(
+                              width: displayWidth(context) * .90,
+                              child: FetchOverview(),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 2,
+                        child: Container(
+                            child: Card(
+                              child: Container(
+                                width: displayWidth(context) * .90,
+                                  child: Column(
+                                    children: <Widget>[
+                                      Expanded(
+                                        // child: Text('RECENT'),
+                                        child: Container(
+                                          padding: EdgeInsets.only(left: 20.0),
+                                          alignment: Alignment.centerLeft,
+                                          child: Text('RECENT',
+                                            style: TextStyle(
+                                              fontSize: 18.0,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        flex: 3,
+                                        child: Container(
+                                          width: displayWidth(context) * .90,
+                                          child: ListView.separated(
+                                            itemCount: 2,
+                                            itemBuilder: (BuildContext context , int index){
+                                              String date = snapshot.data.records[index].date;
+                                              String dateWithT = date.substring(0, 10);
+                                              // DateTime dateTime = DateTime.parse(dateWithT);
+
+                                              return ListTile(
+                                                
+                                                leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets/images/ic_food_drinks.png')),
+                                                title: Text('P ' + '${snapshot.data.records[index].amount}' + '0'),
+                                                subtitle: Text('${snapshot.data.records[index].category.name}' + ' — ' + '${snapshot.data.records[index].notes}' , style: TextStyle(fontSize: 12.0),),
+                                                // trailing: Text('${snapshot.data.records[index].date}'),
+                                                trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0),),
+                                              );
+                                            }, 
+                                            separatorBuilder: (BuildContext context , int index) => const Divider(), 
+                                            
+                                          ),
+                                        ),
+                                      ),
+                                      Expanded(
+                                        child: Container(
+                                          alignment: Alignment.center,
+                                          child: Text('View More',
+                                            style: TextStyle(
+                                              fontSize: 16.0,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                        ),
+                      ),
+                      Expanded(
+                        flex: 1,
+                        child: Container(
+                        ),
+                      ),
+                    ],
+                  );
                 }
               }else if(snapshot.hasError){
                 return Center(child: Text("Error"));
@@ -145,41 +226,6 @@ class EmptyDashboard extends StatelessWidget{
   }
 }
 
-Future<Overview> getOverview() async{
-  final response = await http.get(
-    'http://expenses.koda.ws/api/v1/records/overview',
-    headers: {
-      HttpHeaders.authorizationHeader: 'eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxNX0.DOueXZ9-xQcdSz294L21oe4ZLOkOty9Au_FxniFMD64',
-      // HttpHeaders.authorizationHeader: hash,
-    },
-  );
-
-  print('The status is ${response.statusCode}');
-  return postFromJsonOverView(response.body);
-}
-
-Overview postFromJsonOverView(String str){
-  print('The string is $str');
-  final jsonData = json.decode(str);
-  print('The jsonData is $jsonData');
-  var value = Overview.fromJson(jsonData);
-  print('The value is $value');
-  return value;
-}
-
-class Overview{
-  final double income;
-  final double expenses;
-
-  Overview({this.income , this.expenses});
-
-  factory Overview.fromJson(Map<String , dynamic> parsedJson){
-    return Overview(
-      income: parsedJson['income'],
-      expenses: parsedJson['expenses'],
-    );
-  }
-}
 
 
 Future<RecordsCategory> getRecords(String hash) async{
@@ -290,6 +336,155 @@ class Category{
     return Category(
       id: parsedJson['id'],
       name: parsedJson['name'],
+    );
+  }
+}
+
+Future<Overview> getOverview() async{
+  final response = await http.get(
+    'http://expenses.koda.ws/api/v1/records/overview',
+    headers: {
+      HttpHeaders.authorizationHeader: 'eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxNX0.DOueXZ9-xQcdSz294L21oe4ZLOkOty9Au_FxniFMD64',
+      // HttpHeaders.authorizationHeader: hash,
+    },
+  );
+
+  print('The status is ${response.statusCode}');
+  return postFromJsonOverView(response.body);
+}
+
+Overview postFromJsonOverView(String str){
+  print('The string is $str');
+  final jsonData = json.decode(str);
+  print('The jsonData is $jsonData');
+  var value = Overview.fromJson(jsonData);
+  print('The value is $value');
+  return value;
+}
+
+class Overview{
+  final double income;
+  final double expenses;
+
+  Overview({this.income , this.expenses});
+
+  factory Overview.fromJson(Map<String , dynamic> parsedJson){
+    return Overview(
+      income: parsedJson['income'],
+      expenses: parsedJson['expenses'],
+    );
+  }
+}
+
+class OverviewData{
+  final String category;
+  final double amount;
+
+  OverviewData(this.category , this.amount);
+}
+
+
+class FetchOverview extends StatefulWidget{
+
+  @override
+  _FetchOverview createState() => _FetchOverview();
+}
+
+class _FetchOverview extends State<FetchOverview>{
+  @override
+  Widget build(BuildContext context){
+    return Scaffold(
+      body:FutureBuilder<Overview>(
+        future: getOverview(),
+        builder: (context , snapshot){
+          if(snapshot.hasData){
+
+            return ChartsOverview(income: snapshot.data.income , expenses: snapshot.data.expenses,);
+          }else if(snapshot.hasError){
+            return Center(child: Text("Error"));
+          }
+          return Center(child: CircularProgressIndicator());
+        },
+      )
+    );
+  }
+}
+
+
+class ChartsOverview extends StatefulWidget{
+
+  final double income;
+  final double expenses;
+
+  ChartsOverview({this.income , this.expenses});
+
+  @override
+  _ChartsOverview createState() => _ChartsOverview(income: income , expenses: expenses);
+}
+
+class _ChartsOverview extends State<ChartsOverview>{
+
+  final double income;
+  final double expenses;
+
+  _ChartsOverview({this.income , this.expenses});
+
+  List<charts.Series> seriesList;
+
+    @override
+    void initState(){
+      super.initState();
+      seriesList = _createOverviewData();
+    }
+
+    barChart(){
+    return charts.BarChart(
+      seriesList,
+      animate: true,
+      vertical: false,
+      behaviors: [
+        charts.ChartTitle(
+          "OVERVIEW",
+
+          // behaviorPosition: charts.BehaviorPosition.top,
+          maxWidthStrategy: charts.MaxWidthStrategy.truncate,
+          outerPadding: 0,
+          innerPadding: 10,
+          titleOutsideJustification: charts.OutsideJustification.start,
+        ),
+      ],
+
+    );
+  }
+
+    List<charts.Series<OverviewData, String>> _createOverviewData(){
+    final overviewData = [
+      OverviewData('Income' , income),
+      OverviewData('Expenses' , expenses),
+    ];
+
+    return [
+      charts.Series<OverviewData, String>(
+        
+        id: 'Overview',
+        domainFn: (OverviewData overview, _) => overview.category,
+        measureFn: (OverviewData overview, _) => overview.amount,
+        data: overviewData,
+        fillColorFn: (OverviewData overview, _){
+          return (overview.category == 'Income')
+          ? charts.MaterialPalette.green.shadeDefault
+          : charts.MaterialPalette.red.shadeDefault;
+        }
+      ),
+    ];
+  }
+
+  Widget build(BuildContext context){
+    return Scaffold(
+      body: Container(
+        padding: EdgeInsets.all(20.0),
+        child: barChart(),
+      ),
     );
   }
 }

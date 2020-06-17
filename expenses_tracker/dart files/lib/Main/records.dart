@@ -7,7 +7,19 @@ import 'dashboard.dart';
 import 'onboarding.dart';
 
 
-class Records extends StatelessWidget{
+class Records extends StatefulWidget{
+  final String hash;
+  Records({this.hash});
+
+  @override
+  _Records createState() => _Records(hash: hash);
+}
+
+class _Records extends State<Records>{
+
+  final String hash;
+  _Records({this.hash});
+
 
   @override
   Widget build(BuildContext context){
@@ -45,10 +57,10 @@ class Records extends StatelessWidget{
                 child: Column(
                   children: <Widget>[
                     Expanded(
-                      child: IconLink(text: "HOME" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Dashboard()),
+                      child: IconLink(text: "HOME" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Dashboard(hash: hash,)),
                     ),
                     Expanded(
-                      child: IconLink(text: "RECORDS" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Records()),
+                      child: IconLink(text: "RECORDS" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Records(hash: hash,)),
                     ),
                     Expanded(
                       child: IconLink(text: "LOGOUT" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Onboarding()),
@@ -94,6 +106,9 @@ class Records extends StatelessWidget{
                     child: Align(child: Icon(Icons.delete, color: Color(0xffffffff)) , alignment: Alignment.centerLeft,)
                   ),
                   child: ListTile(
+                    // leading: Image.asset('assets${snapshot.data.categories[index].icon}'),
+                    // leading: Image.asset('assets/'+'${snapshot.data.categories[index].icon}'),
+                    leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets/'+'${snapshot.data.categories[index].icon}')),
                     title: Text(snapshot.data.categories[index].name),
                     subtitle: Text(snapshot.data.categories[index].icon),
 

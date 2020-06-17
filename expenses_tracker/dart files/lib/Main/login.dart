@@ -1,11 +1,12 @@
-// import 'package:expenses_tracker/Extras/extras.dart';
+import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:expenses_tracker/Extras/sizes.dart';
-import 'package:expenses_tracker/Main/dashboard.dart';
 import 'package:flutter/material.dart';
 
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+
+import 'dashboard.dart';
 
 class Login extends StatefulWidget{
   @override
@@ -17,9 +18,7 @@ class _Login extends State<Login>{
   TextEditingController _controller1 = TextEditingController();
   TextEditingController _controller2 = TextEditingController();
 
-  Account account;
-
-  Future<Account> _futureAccount;
+  Future<Credentials> _futureAccount;
 
   @override
   Widget build(BuildContext context){
@@ -28,7 +27,7 @@ class _Login extends State<Login>{
       resizeToAvoidBottomInset: false,
       body: Container(
         child: (_futureAccount == null)
-        ? Column(
+          ? Column(
           children: <Widget>[
             Expanded(
               child: Column(
@@ -144,8 +143,16 @@ class _Login extends State<Login>{
                         color: Color(0xffffffff),
                         minWidth: displayWidth(context) * .75,
                         onPressed: (){
+
                           setState(() {
-                            _futureAccount = createAccount(_controller1.text , _controller2.text);
+                            if(_controller1.text == '' || _controller2.text == ''){
+                              showDialog(
+                                context: context,
+                                builder: (_) => ErrorMessage(header: "Error" , text: "Passwords don't match. Please try again."),   
+                              );
+                            }else{
+                              _futureAccount = loginAccount(_controller1.text , _controller2.text);
+                            }
                           });
                         },
                         child: Text("Login", 
@@ -156,7 +163,6 @@ class _Login extends State<Login>{
                         ),
                         
                       ),
-                      // child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "LOGIN" , backgroundColor: Color(0xffffffff), fontWeight: FontWeight.bold, nextPage: Dashboard()),
                     ),
                   ),
                   Expanded(
@@ -168,33 +174,23 @@ class _Login extends State<Login>{
             ),
           ],
         ) 
-        : FutureBuilder<Account>(
-          future: _futureAccount,
-          builder: (context , snapshot){
-            if(snapshot.hasData){
-              if(snapshot.data.message == 'Successfully signed in!'){
-                  Navigator.of(context).push(MaterialPageRoute(builder: (context) => Dashboard(hash: snapshot.data.token)));
+        : FutureBuilder<Credentials>(
+            future: _futureAccount,
+            builder: (context , snapshot){
+              if(snapshot.hasData){
+                return Dashboard(hash: snapshot.data.token);
+              }else if(snapshot.hasError){
+                return ErrorLogin();
               }
-            }else if(snapshot.hasError){
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => Login()));
-              return Center(
-                child: Text('${snapshot.error}'),
-                
-              );
-              
-              
+              return Center(child: CircularProgressIndicator());
             }
-            return Center(child: CircularProgressIndicator());
-          },
         ),
       ),
     );
   }
 }
 
-
-
-Future<Account> createAccount(String email , String password) async{
+Future<Credentials> loginAccount(String email, String password) async{
   final http.Response response = await http.post('http://expenses.koda.ws/api/v1/sign_in',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
@@ -203,32 +199,55 @@ Future<Account> createAccount(String email , String password) async{
     body: jsonEncode(<String , String>{
       'email': email,
       'password': password
-    }),
+    }), 
   );
-
-  print('The email is $email');
-  print('The password is $password');
 
   print('The status code is ${response.statusCode}');
 
+
+
   if(response.statusCode == 200){
-    return Account.fromJson(json.decode(response.body));
+    return Credentials.fromJsonCredentials(json.decode(response.body));
   }else{
-    
-    throw Exception('Failed to login');
+    throw Exception('Failed to create account');
   }
 }
 
-class Account{
+
+
+class Credentials{
   String message;
   String token;
+  CredentialUser user;
 
-  Account({this.message , this.token});
+  Credentials({this.message , this.token , this.user});
 
-  factory Account.fromJson(Map<String, dynamic> json){
-    return Account(
-      message: json['message'],
-      token: json['token']
+  factory Credentials.fromJsonCredentials(Map<String, dynamic> parsedJson){
+    CredentialUser value = CredentialUser.fromJsonCredentialUser(parsedJson['user']);
+
+
+    return Credentials(
+      message: parsedJson['message'],
+      token: parsedJson['token'],
+      user: value,
+    );
+  }
+}
+
+
+class CredentialUser{
+
+  int id;
+  String email;
+  String name;
+
+  CredentialUser({this.id, this.email , this.name});
+
+  factory CredentialUser.fromJsonCredentialUser(Map<String , dynamic> parsedJson){
+    return CredentialUser(
+      id: parsedJson['id'],
+      email: parsedJson['email'],
+      name: parsedJson['name'],
     );
   }
 }

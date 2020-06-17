@@ -7,6 +7,14 @@ void main() => runApp(AccountFetch());
 
 // OVERVIEW
 
+class Charts{
+  final double income;
+  final double expenses;
+
+  Charts({this.income , this.expenses});
+}
+
+// Charts charts = new Charts();
 
 class AccountFetch extends StatelessWidget{
 
@@ -19,7 +27,15 @@ class AccountFetch extends StatelessWidget{
           builder: (context , snapshot){
             // print('The value is ${snapshot.data.expenses}');
             if(snapshot.hasData){
-              return Center(child: Text('${snapshot.data.income}'),);
+              // return Center(child: Text('${snapshot.data.income}'),);
+              return Center(
+                child: Container(
+                  height: 200.0,
+                  width: 200.0,
+                  color: Colors.grey,
+                  
+                ),
+              );
             }else if(snapshot.hasError){
               return Center(child: Text("Error"));
             }
