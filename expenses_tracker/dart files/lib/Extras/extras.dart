@@ -1,4 +1,5 @@
 import 'package:expenses_tracker/Main/login.dart';
+import 'package:expenses_tracker/Main/registration.dart';
 import 'package:flutter/material.dart';
 import 'sizes.dart';
 
@@ -238,6 +239,30 @@ class _ErrorLogin extends State<ErrorLogin>{
           onPressed: (){
             // Navigator.of(context).pop(false);
             Navigator.of(context).push(MaterialPageRoute(builder: (_) => Login()));
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class ErrorRegister extends StatefulWidget{
+  @override
+  _ErrorRegister createState() => _ErrorRegister();
+}
+
+class _ErrorRegister extends State<ErrorRegister>{
+  @override
+  Widget build(BuildContext context){
+    return AlertDialog(
+      title: Text('Error'),
+      content: Text('Email has already been taken. Please try again.'),
+      actions: <Widget>[
+        FlatButton(
+          child: Text("OK"),
+          onPressed: (){
+            // Navigator.of(context).pop(false);
+            Navigator.of(context).push(MaterialPageRoute(builder: (_) => Registration()));
           },
         ),
       ],

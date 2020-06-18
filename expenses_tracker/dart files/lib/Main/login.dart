@@ -15,6 +15,8 @@ class Login extends StatefulWidget{
 
 class _Login extends State<Login>{
 
+  final GlobalKey<NavigatorState> _navigator = GlobalKey<NavigatorState>();
+
   TextEditingController _controller1 = TextEditingController();
   TextEditingController _controller2 = TextEditingController();
 
@@ -178,7 +180,13 @@ class _Login extends State<Login>{
             future: _futureAccount,
             builder: (context , snapshot){
               if(snapshot.hasData){
-                return Dashboard(hash: snapshot.data.token);
+                // return Dashboard(hash: snapshot.data.token);
+                return MaterialApp(
+                  navigatorKey: _navigator,
+                  routes: <String, WidgetBuilder>{
+                    '/': (context) => Dashboard(hash: snapshot.data.token,),
+                  }
+                );
               }else if(snapshot.hasError){
                 return ErrorLogin();
               }

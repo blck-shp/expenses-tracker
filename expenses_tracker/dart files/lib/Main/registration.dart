@@ -10,7 +10,7 @@ import 'package:crypto/crypto.dart';
 
 import 'dashboard.dart';
 
-Future<http.Response> createAccount(String name , String email,  String password, String hash) async{
+Future<String> createAccount(String name , String email,  String password, String hash) async{
   final http.Response response = await http.post('http://expenses.koda.ws/api/v1/sign_up',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
@@ -28,28 +28,29 @@ Future<http.Response> createAccount(String name , String email,  String password
   print('The password is $password');
   print('The status code is ${response.statusCode}');
 
-  var message;
-  var error;
-
   dynamic fromJsonMessage(Map<String, dynamic> json){
-    return json['message'];
+    hashValue = json['token'];
+    return hashValue;
   }
 
-  dynamic fromJsonError(Map<String, dynamic> json){
-    return json['error'];
-  }
+  // dynamic fromJsonError(Map<String, dynamic> json){
+  //   return json['error'];
+  // }
 
   if(response.statusCode == 200){
-    message = fromJsonMessage(json.decode(response.body));
+    // hashValue = 
+    return fromJsonMessage(json.decode(response.body));
+    // message = fromJsonMessage(json.decode(response.body));
     // print('The message is $message');
-    return message;
+    // return fromJsonMessage(json.decode(response.body));
   }else{
-    error = fromJsonError(json.decode(response.body));
+    // error = fromJsonError(json.decode(response.body));
     // print('The message is $error');
-    return error;
+    throw Exception('Failed to register');
   }
 }
 
+var hashValue;
 
 
 String generateMd5(String input){
@@ -68,7 +69,7 @@ class _Registration extends State<Registration>{
   TextEditingController _controller3 = TextEditingController();
   TextEditingController _controller4 = TextEditingController();
 
-  Future<http.Response> _futureAccount;
+  Future<String> _futureAccount;
   List numbers = [];
 
   @override
@@ -148,6 +149,7 @@ class _Registration extends State<Registration>{
                     Expanded(
                       child: TextFormField(
                         controller: _controller2,
+                        keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(
@@ -249,20 +251,46 @@ class _Registration extends State<Registration>{
 
                         onPressed: (){
                           setState(() {
-                              if(_controller3.text == _controller4.text){
+                              bool email = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(_controller2.text);
+                              print('The value of email is $email');
+                              if(email == false){
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => ErrorMessage(header: "Error" , text: "Invalid email address. Please try again."),                        
+                                );                              
+                              }else if(_controller3.text != _controller4.text){
+                                showDialog(
+                                  context: context,
+                                  builder: (_) => ErrorMessage(header: "Error" , text: "Passwords don't match. Please try again."),                        
+                                );
+                              }else{
+                                    print('hehehehe');
 
                                     bool flag = false;
                                     int number;
-                                    Random value = new Random();
-                                    number = value.nextInt(1000000);
+                                    
+                                    do{
+                                      Random value = new Random();
+                                      number = value.nextInt(1000000);
+                                      
+                                      bool loop = false;
 
-                                    for(var i = 0; i < numbers.length; i++){
-                                      if(numbers[i] == number){
+                                      for(var i = 0 ; i < numbers.length; i++){
+                                        if(numbers[i] == number){
+                                          loop = true;
+                                          break;
+                                        }
+                                      }
+
+                                      if(loop == false){
                                         flag = true;
                                       }
-                                    }
+                                      
+                                    }while(flag == false);
 
-                                    if(flag == false){
+                                    
+
+                                    if(flag == true){
                                       print('The number is $number');
 
                                       numbers.add(number);
@@ -276,15 +304,10 @@ class _Registration extends State<Registration>{
                                       _futureAccount = createAccount(_controller1.text , _controller2.text , _controller3.text , hash);
                                     }
 
-                              }else{
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => ErrorMessage(header: "Error" , text: "Passwords don't match. Please try again."),                        
-                                );
                               }
                           });
                         },
-                        child: Text("Login",
+                        child: Text("Register",
                           style: TextStyle(fontSize: 20.0,
                             fontWeight: FontWeight.bold,
                           ),
@@ -301,25 +324,16 @@ class _Registration extends State<Registration>{
             ),
           ],
         )
-        : FutureBuilder<http.Response>(
+        : FutureBuilder<String>(
               future: _futureAccount,
               builder: (context , snapshot){
+                print('The hashValue is $hashValue');
                 if(snapshot.hasData){
-                  // return Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard));
-                  // return Center();
-                  // return Center(child: Text('${snapshot.data}'));
-                  print('The account has been created!');
 
-                  setState(() {
-                    Route route = MaterialPageRoute(builder: (context) => Dashboard());
-                    Navigator.push(context , route); 
-                    return Center(child: Text('The account has been created!'));
-                  });
-                  // return Center(child: Text('${snapshot.data}'));
-                  // return Route route = MaterialPageRoute(builder: (context) => Dashboard());
-                  // Navigator.push(context , route); 
+                  return Dashboard(hash: hashValue);
+
                 }else if(snapshot.hasError){
-                  // return Center(child: Text('${snapshot.error.toString()}'));
+                  return ErrorRegister();
                 }
                 return Center(child: CircularProgressIndicator());
               },

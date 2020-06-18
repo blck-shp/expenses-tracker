@@ -106,14 +106,13 @@ class _Records extends State<Records>{
                     child: Align(child: Icon(Icons.delete, color: Color(0xffffffff)) , alignment: Alignment.centerLeft,)
                   ),
                   child: ListTile(
-                    // leading: Image.asset('assets${snapshot.data.categories[index].icon}'),
-                    // leading: Image.asset('assets/'+'${snapshot.data.categories[index].icon}'),
-                    leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets/'+'${snapshot.data.categories[index].icon}')),
+                    leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${snapshot.data.categories[index].icon}')),
                     title: Text(snapshot.data.categories[index].name),
                     subtitle: Text(snapshot.data.categories[index].icon),
 
                     onTap: (){
-                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => ModifyRecord(isEmpty: false,)));
+                      // Navigator.of(context).push(MaterialPageRoute(builder: (_) => ModifyRecord('${snapshot.data.categories[index].name}')));
+                      Navigator.pop(context, ['${snapshot.data.categories[index].name}' , snapshot.data.categories[index].id]);
                     },
                     onLongPress: (){
                       showDialog(

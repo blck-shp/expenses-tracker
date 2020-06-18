@@ -5,13 +5,12 @@ import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:expenses_tracker/Extras/sizes.dart';
 import 'package:expenses_tracker/Main/modify_record.dart';
 import 'package:expenses_tracker/Main/records.dart';
-// import 'package:expenses_tracker/Practices/fetch.dart';
+
 import 'package:flutter/material.dart';
 import 'onboarding.dart';
 import 'package:http/http.dart' as http;
 import 'package:charts_flutter/flutter.dart' as charts;
 
-// import 'package:charts_flutter/flutter.dart' as charts;
 
 
 class Dashboard extends StatefulWidget{
@@ -32,7 +31,7 @@ class _Dashboard extends State<Dashboard>{
 
   @override
   Widget build(BuildContext context){
-    print('The value of hash is $hash');
+    print('The value of hash is in dash board is $hash');
     return Scaffold(
       backgroundColor: Color(0xffeeeeee),
       resizeToAvoidBottomInset: false,
@@ -73,7 +72,16 @@ class _Dashboard extends State<Dashboard>{
           ),
         ),
       ),
-      floatingActionButton: FloatingButton(nextPage: ModifyRecord(isEmpty: true,),),
+      // floatingActionButton: FloatingButton(nextPage: ModifyRecord(isEmpty: true, hash: hash),),
+      floatingActionButton: FloatingActionButton(
+        onPressed: (){
+          print('The value of hash in floating action button is $hash');
+          Route route = MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: true, hash: hash));
+          Navigator.push(context , route);
+        },
+        backgroundColor: Color(0xff246c55),
+        child: Icon(Icons.add),
+      ),
       body: FutureBuilder<RecordsCategory>(
         future: getRecords(hash),
         builder: (context , snapshot){
@@ -90,7 +98,7 @@ class _Dashboard extends State<Dashboard>{
                           child: Card(
                             child: Container(
                               width: displayWidth(context) * .90,
-                              child: FetchOverview(),
+                              // child: FetchOverview(),
                             ),
                           ),
                         ),
@@ -445,8 +453,6 @@ class _ChartsOverview extends State<ChartsOverview>{
       behaviors: [
         charts.ChartTitle(
           "OVERVIEW",
-
-          // behaviorPosition: charts.BehaviorPosition.top,
           maxWidthStrategy: charts.MaxWidthStrategy.truncate,
           outerPadding: 0,
           innerPadding: 10,
