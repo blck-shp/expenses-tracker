@@ -4,14 +4,28 @@ import 'dart:io';
 import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:expenses_tracker/Extras/sizes.dart';
 import 'package:expenses_tracker/Main/modify_record.dart';
-import 'package:expenses_tracker/Main/records.dart';
+// import 'package:expenses_tracker/Main/records.dart';
 
 import 'package:flutter/material.dart';
+import 'list_records.dart';
 import 'onboarding.dart';
 import 'package:http/http.dart' as http;
 import 'package:charts_flutter/flutter.dart' as charts;
 
 
+class Overview{
+  double income;
+  double expenses;
+
+  Overview({this.income , this.expenses});
+
+  factory Overview.parseOverview(Map<String, dynamic> parsedJson){
+    return Overview(
+      income: parsedJson['income'],
+      expenses: parsedJson['expenses']
+    );
+  }
+}
 
 class Dashboard extends StatefulWidget{
   final String hash;
@@ -25,13 +39,47 @@ class Dashboard extends StatefulWidget{
 
 class _Dashboard extends State<Dashboard>{
 
+  List<String> icons = [
+    "/images/ic_food_drinks.png",
+    "/images/ic_groceries.png",
+    "/images/ic_clothes.png",
+    "/images/ic_electronics.png",
+    "/images/ic_healthcare.png",
+    "/images/ic_gifts.png",
+    "/images/ic_transportation.png",
+     "/images/ic_education.png",
+     "/images/ic_entertainment.png",
+     "/images/ic_utilities.png",
+     "/images/ic_rent.png",
+     "/images/ic_household.png",
+     "/images/ic_investments.png",
+     "/images/ic_other.png",
+  ];
+
   final String hash;
 
   _Dashboard({this.hash});
 
+  Future<Overview> getOverview(String hash) async{
+    final response = await http.get(
+      'http://expenses.koda.ws/api/v1/records/overview',
+      headers: {
+        HttpHeaders.authorizationHeader: hash,
+      },
+    );
+
+    if(response.statusCode == 200){
+      return Overview.parseOverview(json.decode(response.body));
+    }else{
+      throw Exception('Failed to create account');
+    }
+  }
+
+  var icon;
+
   @override
   Widget build(BuildContext context){
-    print('The value of hash is in dash board is $hash');
+    print('The value of hash is in dashboard is $hash');
     return Scaffold(
       backgroundColor: Color(0xffeeeeee),
       resizeToAvoidBottomInset: false,
@@ -56,7 +104,7 @@ class _Dashboard extends State<Dashboard>{
                       child: IconLink(text: "HOME" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Dashboard(hash: hash,)),
                     ),
                     Expanded(
-                      child: IconLink(text: "RECORDS" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Records(hash: hash,)),
+                      child: IconLink(text: "RECORDS" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: ListRecords(hash: hash,)),
                     ),
                     Expanded(
                       child: IconLink(text: "LOGOUT" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Onboarding()),
@@ -75,7 +123,6 @@ class _Dashboard extends State<Dashboard>{
       // floatingActionButton: FloatingButton(nextPage: ModifyRecord(isEmpty: true, hash: hash),),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
-          print('The value of hash in floating action button is $hash');
           Route route = MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: true, hash: hash));
           Navigator.push(context , route);
         },
@@ -85,100 +132,115 @@ class _Dashboard extends State<Dashboard>{
       body: FutureBuilder<RecordsCategory>(
         future: getRecords(hash),
         builder: (context , snapshot){
-              print('The snapshot is ${snapshot.data}');
-              if(snapshot.hasData){
-                if(snapshot.data.pagination.count == 0){
-                  return EmptyDashboard();
-                }else{
-                  return Column(
-                    children: <Widget>[
-                      Expanded(
+          print('The snapshot is ${snapshot.data}');
+          if(snapshot.hasData){
+            if(snapshot.data.pagination.count == 0){
+              return EmptyDashboard(hash: hash,);
+            }else{
+              return Column(
+                children: <Widget>[
+                  Expanded(
+                    child: Container(
+                      // width: displayWidth(context) * .90,
+                      child: Card(
                         child: Container(
-                          // width: displayWidth(context) * .90,
-                          child: Card(
-                            child: Container(
-                              width: displayWidth(context) * .90,
-                              // child: FetchOverview(),
-                            ),
+                          width: displayWidth(context) * .90,
+                          // child: FetchOverview(hash: hash,),
+                          child: FutureBuilder<Overview>(
+                            future: getOverview(hash),
+                            builder: (context , snapshot){
+                              if(snapshot.hasData){
+                                return ChartsOverview(income: snapshot.data.income, expenses: snapshot.data.expenses,);
+                              }else if(snapshot.hasError){
+                                return Center(child: Text("Error"));
+                              }
+                              return Center(child: CircularProgressIndicator());
+                            },
+                          )
+                        ),
+                      ),
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Container(
+                      child: Card(
+                        child: Container(
+                          width: displayWidth(context) * .90,
+                          child: Column(
+                            children: <Widget>[
+                              Expanded(
+                                // child: Text('RECENT'),
+                                child: Container(
+                                  padding: EdgeInsets.only(left: 20.0),
+                                  alignment: Alignment.centerLeft,
+                                  child: Text('RECENT',
+                                    style: TextStyle(
+                                      fontSize: 18.0,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 3,
+                                child: Container(
+                                  width: displayWidth(context) * .90,
+                                  child: ListView.separated(
+                                    physics: const NeverScrollableScrollPhysics(),
+                                    padding: EdgeInsets.zero,
+                                    itemCount: snapshot.data.pagination.count,
+                                    itemBuilder: (BuildContext context , int index){
+                                      String date = snapshot.data.records[index].date;
+                                      String dateWithT = date.substring(0, 10);
+                                      return ListTile(
+                                        leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[index + 2]}')),
+                                        title: Text('P ' + '${snapshot.data.records[index].amount}' + '0'),
+                                        subtitle: Text('${snapshot.data.records[index].category.name}' + ' — ' + '${snapshot.data.records[index].notes}' , style: TextStyle(fontSize: 12.0),),
+                                        trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0),),
+                                      );
+                                    }, 
+                                    separatorBuilder: (BuildContext context , int index) => const Divider(), 
+                                    
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                child: Container(
+                                  alignment: Alignment.center,
+                                  child: GestureDetector(
+                                    onTap: (){
+                                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => ListRecords(hash: hash,)));
+                                    },
+                                    child: Text('View More',
+                                      style: TextStyle(
+                                        fontSize: 16.0,
+                                      ),
+                                    ),
+                                  ),
+                                  
+                                ),
+                              ),
+                            ],
                           ),
                         ),
                       ),
-                      Expanded(
-                        flex: 2,
-                        child: Container(
-                            child: Card(
-                              child: Container(
-                                width: displayWidth(context) * .90,
-                                  child: Column(
-                                    children: <Widget>[
-                                      Expanded(
-                                        // child: Text('RECENT'),
-                                        child: Container(
-                                          padding: EdgeInsets.only(left: 20.0),
-                                          alignment: Alignment.centerLeft,
-                                          child: Text('RECENT',
-                                            style: TextStyle(
-                                              fontSize: 18.0,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        flex: 3,
-                                        child: Container(
-                                          width: displayWidth(context) * .90,
-                                          child: ListView.separated(
-                                            itemCount: 2,
-                                            itemBuilder: (BuildContext context , int index){
-                                              String date = snapshot.data.records[index].date;
-                                              String dateWithT = date.substring(0, 10);
-                                              // DateTime dateTime = DateTime.parse(dateWithT);
-
-                                              return ListTile(
-                                                
-                                                leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets/images/ic_food_drinks.png')),
-                                                title: Text('P ' + '${snapshot.data.records[index].amount}' + '0'),
-                                                subtitle: Text('${snapshot.data.records[index].category.name}' + ' — ' + '${snapshot.data.records[index].notes}' , style: TextStyle(fontSize: 12.0),),
-                                                // trailing: Text('${snapshot.data.records[index].date}'),
-                                                trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0),),
-                                              );
-                                            }, 
-                                            separatorBuilder: (BuildContext context , int index) => const Divider(), 
-                                            
-                                          ),
-                                        ),
-                                      ),
-                                      Expanded(
-                                        child: Container(
-                                          alignment: Alignment.center,
-                                          child: Text('View More',
-                                            style: TextStyle(
-                                              fontSize: 16.0,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                  ],
-                                ),
-                              ),
-                            ),
-                        ),
-                      ),
-                      Expanded(
-                        flex: 1,
-                        child: Container(
-                        ),
-                      ),
-                    ],
-                  );
-                }
-              }else if(snapshot.hasError){
-                return Center(child: Text("Error"));
-              }
-              if(snapshot == null){
-                return Center(child: Text('Null'),);
-              }
-              return Center(child: CircularProgressIndicator());
+                    ),
+                  ),
+                  Expanded(
+                    flex: 1,
+                    child: Container(
+                    ),
+                  ),
+                ],
+              );
+            }
+          }else if(snapshot.hasError){
+            return Center(child: Text("Error"));
+          }
+          if(snapshot == null){
+            return Center(child: Text('Null'),);
+          }
+          return Center(child: CircularProgressIndicator());
         },
       )
     );
@@ -186,6 +248,10 @@ class _Dashboard extends State<Dashboard>{
 }
 
 class EmptyDashboard extends StatelessWidget{
+
+  final String hash;
+
+  EmptyDashboard({this.hash});
 
   @override
   Widget build(BuildContext context){
@@ -216,7 +282,25 @@ class EmptyDashboard extends StatelessWidget{
                 ),
                 Expanded(
                   child: Container(
-                    child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "START TRACKING", backgroundColor: Colors.white, fontWeight: FontWeight.bold, nextPage: ModifyRecord(isEmpty: true,),),
+                    // child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "START TRACKING", backgroundColor: Colors.white, fontWeight: FontWeight.bold, nextPage: ModifyRecord(isEmpty: true, hash: hash,),
+                    child: MaterialButton(
+                      height: displayHeight(context),
+                      minWidth: displayWidth(context) * .75,
+                      onPressed: (){
+                        print('The value of hash is $hash');
+                        // Route route = MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: true, hash: hash,));
+                        // Navigator.push(context , route);
+                        Navigator.of(context).push(MaterialPageRoute(builder: (_) => ModifyRecord(isEmpty: true, hash: hash,)));
+                      },
+                      color: Color(0xffffffff),
+                      child: Text(
+                        "START TRACKING",
+                        style: TextStyle(
+                          fontSize: 20.0,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
                   ),
                 ),
                 Expanded(
@@ -234,12 +318,89 @@ class EmptyDashboard extends StatelessWidget{
   }
 }
 
+class OverviewData{
+  final String category;
+  final double amount;
+
+  OverviewData(this.category , this.amount);
+}
+
+
+class ChartsOverview extends StatefulWidget{
+
+  final double income;
+  final double expenses;
+
+  ChartsOverview({this.income , this.expenses});
+
+  @override
+  _ChartsOverview createState() => _ChartsOverview(income: income , expenses: expenses);
+}
+
+class _ChartsOverview extends State<ChartsOverview>{
+
+  final double income;
+  final double expenses;
+
+  _ChartsOverview({this.income , this.expenses});
+
+  List<charts.Series> seriesList;
+
+    @override
+    void initState(){
+      super.initState();
+      seriesList = _createOverviewData();
+    }
+
+    dynamic barChart(){
+    return charts.BarChart(
+      seriesList,
+      animate: true,
+      vertical: false,
+      behaviors: [
+        charts.ChartTitle(
+          "OVERVIEW",
+          maxWidthStrategy: charts.MaxWidthStrategy.truncate,
+          outerPadding: 15,
+          innerPadding: 10,
+          titleOutsideJustification: charts.OutsideJustification.start,
+        ),
+      ],
+
+    );
+  }
+
+    List<charts.Series<OverviewData, String>> _createOverviewData(){
+    final overviewData = [
+      OverviewData('Income' , income),
+      OverviewData('Expenses' , expenses),
+    ];
+
+    return [
+      charts.Series<OverviewData, String>(
+        
+        id: 'Overview',
+        domainFn: (OverviewData overview, _) => overview.category,
+        measureFn: (OverviewData overview, _) => overview.amount,
+        data: overviewData,
+        fillColorFn: (OverviewData overview, _){
+          return (overview.category == 'Income')
+          ? charts.MaterialPalette.green.shadeDefault
+          : charts.MaterialPalette.red.shadeDefault;
+        }
+      ),
+    ];
+  }
+
+  Widget build(BuildContext context){
+    return barChart();
+  }
+}
 
 
 Future<RecordsCategory> getRecords(String hash) async{
   final response = await http.get('http://expenses.koda.ws/api/v1/records',
     headers: {
-      // HttpHeaders.authorizationHeader: 'eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxNX0.DOueXZ9-xQcdSz294L21oe4ZLOkOty9Au_FxniFMD64',
       HttpHeaders.authorizationHeader: hash,
     },
   );
@@ -348,149 +509,4 @@ class Category{
   }
 }
 
-Future<Overview> getOverview() async{
-  final response = await http.get(
-    'http://expenses.koda.ws/api/v1/records/overview',
-    headers: {
-      HttpHeaders.authorizationHeader: 'eyJhbGciOiJIUzI1NiJ9.eyJ1c2VyX2lkIjoxNX0.DOueXZ9-xQcdSz294L21oe4ZLOkOty9Au_FxniFMD64',
-      // HttpHeaders.authorizationHeader: hash,
-    },
-  );
 
-  print('The status is ${response.statusCode}');
-  return postFromJsonOverView(response.body);
-}
-
-Overview postFromJsonOverView(String str){
-  print('The string is $str');
-  final jsonData = json.decode(str);
-  print('The jsonData is $jsonData');
-  var value = Overview.fromJson(jsonData);
-  print('The value is $value');
-  return value;
-}
-
-class Overview{
-  final double income;
-  final double expenses;
-
-  Overview({this.income , this.expenses});
-
-  factory Overview.fromJson(Map<String , dynamic> parsedJson){
-    return Overview(
-      income: parsedJson['income'],
-      expenses: parsedJson['expenses'],
-    );
-  }
-}
-
-class OverviewData{
-  final String category;
-  final double amount;
-
-  OverviewData(this.category , this.amount);
-}
-
-
-class FetchOverview extends StatefulWidget{
-
-  @override
-  _FetchOverview createState() => _FetchOverview();
-}
-
-class _FetchOverview extends State<FetchOverview>{
-  @override
-  Widget build(BuildContext context){
-    return Scaffold(
-      body:FutureBuilder<Overview>(
-        future: getOverview(),
-        builder: (context , snapshot){
-          if(snapshot.hasData){
-
-            return ChartsOverview(income: snapshot.data.income , expenses: snapshot.data.expenses,);
-          }else if(snapshot.hasError){
-            return Center(child: Text("Error"));
-          }
-          return Center(child: CircularProgressIndicator());
-        },
-      )
-    );
-  }
-}
-
-
-class ChartsOverview extends StatefulWidget{
-
-  final double income;
-  final double expenses;
-
-  ChartsOverview({this.income , this.expenses});
-
-  @override
-  _ChartsOverview createState() => _ChartsOverview(income: income , expenses: expenses);
-}
-
-class _ChartsOverview extends State<ChartsOverview>{
-
-  final double income;
-  final double expenses;
-
-  _ChartsOverview({this.income , this.expenses});
-
-  List<charts.Series> seriesList;
-
-    @override
-    void initState(){
-      super.initState();
-      seriesList = _createOverviewData();
-    }
-
-    barChart(){
-    return charts.BarChart(
-      seriesList,
-      animate: true,
-      vertical: false,
-      behaviors: [
-        charts.ChartTitle(
-          "OVERVIEW",
-          maxWidthStrategy: charts.MaxWidthStrategy.truncate,
-          outerPadding: 0,
-          innerPadding: 10,
-          titleOutsideJustification: charts.OutsideJustification.start,
-        ),
-      ],
-
-    );
-  }
-
-    List<charts.Series<OverviewData, String>> _createOverviewData(){
-    final overviewData = [
-      OverviewData('Income' , income),
-      OverviewData('Expenses' , expenses),
-    ];
-
-    return [
-      charts.Series<OverviewData, String>(
-        
-        id: 'Overview',
-        domainFn: (OverviewData overview, _) => overview.category,
-        measureFn: (OverviewData overview, _) => overview.amount,
-        data: overviewData,
-        fillColorFn: (OverviewData overview, _){
-          return (overview.category == 'Income')
-          ? charts.MaterialPalette.green.shadeDefault
-          : charts.MaterialPalette.red.shadeDefault;
-        }
-      ),
-    ];
-  }
-
-  Widget build(BuildContext context){
-    return Scaffold(
-      body: Container(
-        padding: EdgeInsets.all(20.0),
-        child: barChart(),
-      ),
-    );
-  }
-}

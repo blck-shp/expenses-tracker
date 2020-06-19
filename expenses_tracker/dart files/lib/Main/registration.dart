@@ -10,7 +10,25 @@ import 'package:crypto/crypto.dart';
 
 import 'dashboard.dart';
 
-Future<String> createAccount(String name , String email,  String password, String hash) async{
+class Registration extends StatefulWidget{
+  @override
+  _Registration createState() => _Registration();
+}
+
+class _Registration extends State<Registration>{
+
+  TextEditingController _controller1 = TextEditingController();
+  TextEditingController _controller2 = TextEditingController();
+  TextEditingController _controller3 = TextEditingController();
+  TextEditingController _controller4 = TextEditingController();
+
+  List numbers = [];
+
+  String generateMd5(String input){
+    return md5.convert(utf8.encode(input)).toString();
+  }
+
+  Future<String> createAccount(String name , String email,  String password, String hash) async{
   final http.Response response = await http.post('http://expenses.koda.ws/api/v1/sign_up',
     headers: <String, String>{
       'Content-Type': 'application/json; charset=UTF-8',
@@ -29,48 +47,32 @@ Future<String> createAccount(String name , String email,  String password, Strin
   print('The status code is ${response.statusCode}');
 
   dynamic fromJsonMessage(Map<String, dynamic> json){
-    hashValue = json['token'];
+    String hashValue = json['token'];
+
+    if(hashValue != null){
+      setState(() {
+        showDialog(
+          context: context,
+          builder: (context){
+            Future.delayed(Duration(seconds: 3), (){
+              
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hashValue,)));
+            });
+            return ShowMessage(title: "Success" , content: "Successfullly registered! Processing account.");
+          }
+        );
+      });
+    }
+
     return hashValue;
   }
 
-  // dynamic fromJsonError(Map<String, dynamic> json){
-  //   return json['error'];
-  // }
-
   if(response.statusCode == 200){
-    // hashValue = 
     return fromJsonMessage(json.decode(response.body));
-    // message = fromJsonMessage(json.decode(response.body));
-    // print('The message is $message');
-    // return fromJsonMessage(json.decode(response.body));
   }else{
-    // error = fromJsonError(json.decode(response.body));
-    // print('The message is $error');
     throw Exception('Failed to register');
   }
 }
-
-var hashValue;
-
-
-String generateMd5(String input){
-  return md5.convert(utf8.encode(input)).toString();
-}
-
-class Registration extends StatefulWidget{
-  @override
-  _Registration createState() => _Registration();
-}
-
-class _Registration extends State<Registration>{
-
-  TextEditingController _controller1 = TextEditingController();
-  TextEditingController _controller2 = TextEditingController();
-  TextEditingController _controller3 = TextEditingController();
-  TextEditingController _controller4 = TextEditingController();
-
-  Future<String> _futureAccount;
-  List numbers = [];
 
   @override
   Widget build(BuildContext context){
@@ -78,8 +80,7 @@ class _Registration extends State<Registration>{
       backgroundColor: Color(0xffd8fcff),
       resizeToAvoidBottomInset: false,
       body: Container(
-        child: (_futureAccount == null)
-          ? Column(
+        child: Column(
           children: <Widget>[
             Expanded(
               child: Column(
@@ -249,62 +250,58 @@ class _Registration extends State<Registration>{
                         color: Color(0xffffffff),
                         minWidth: displayWidth(context) * .75,
 
-                        onPressed: (){
+                        onPressed: () async{
                           setState(() {
-                              bool email = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(_controller2.text);
-                              print('The value of email is $email');
-                              if(email == false){
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => ErrorMessage(header: "Error" , text: "Invalid email address. Please try again."),                        
-                                );                              
-                              }else if(_controller3.text != _controller4.text){
-                                showDialog(
-                                  context: context,
-                                  builder: (_) => ErrorMessage(header: "Error" , text: "Passwords don't match. Please try again."),                        
-                                );
-                              }else{
-                                    print('hehehehe');
+                            bool email = RegExp(r"^[a-zA-Z0-9.a-zA-Z0-9.!#$%&'*+-/=?^_`{|}~]+@[a-zA-Z0-9]+\.[a-zA-Z]+").hasMatch(_controller2.text);
+                            print('The value of email is $email');
+                            if(email == false){
+                              showDialog(
+                                context: context,
+                                builder: (_) => ErrorMessage(header: "Error" , text: "Invalid email address. Please try again."),                        
+                              );                              
+                            }else if(_controller3.text != _controller4.text){
+                              showDialog(
+                                context: context,
+                                builder: (_) => ErrorMessage(header: "Error" , text: "Passwords don't match. Please try again."),                        
+                              );
+                            }else{
+                              print('hehehehe');
 
-                                    bool flag = false;
-                                    int number;
-                                    
-                                    do{
-                                      Random value = new Random();
-                                      number = value.nextInt(1000000);
-                                      
-                                      bool loop = false;
+                              bool flag = false;
+                              int number;
+                              
+                              do{
+                                Random value = new Random();
+                                number = value.nextInt(1000000);
+                                
+                                bool loop = false;
 
-                                      for(var i = 0 ; i < numbers.length; i++){
-                                        if(numbers[i] == number){
-                                          loop = true;
-                                          break;
-                                        }
-                                      }
+                                for(var i = 0 ; i < numbers.length; i++){
+                                  if(numbers[i] == number){
+                                    loop = true;
+                                    break;
+                                  }
+                                }
 
-                                      if(loop == false){
-                                        flag = true;
-                                      }
-                                      
-                                    }while(flag == false);
+                                if(loop == false){
+                                  flag = true;
+                                }
+                                
+                              }while(flag == false);
 
-                                    
+                              if(flag == true){
+                                print('The number is $number');
 
-                                    if(flag == true){
-                                      print('The number is $number');
+                                numbers.add(number);
 
-                                      numbers.add(number);
+                                var hash = generateMd5(number.toString());
 
-                                      var hash = generateMd5(number.toString());
-
-                                      for(var i = 0; i < numbers.length; i++){
-                                        print('The array of number is ${numbers[i]}');
-                                      }
-
-                                      _futureAccount = createAccount(_controller1.text , _controller2.text , _controller3.text , hash);
-                                    }
-
+                                for(var i = 0; i < numbers.length; i++){
+                                  print('The array of number is ${numbers[i]}');
+                                }
+                                createAccount(_controller1.text , _controller2.text , _controller3.text , hash);
                               }
+                            }
                           });
                         },
                         child: Text("Register",
@@ -323,21 +320,7 @@ class _Registration extends State<Registration>{
               ),
             ),
           ],
-        )
-        : FutureBuilder<String>(
-              future: _futureAccount,
-              builder: (context , snapshot){
-                print('The hashValue is $hashValue');
-                if(snapshot.hasData){
-
-                  return Dashboard(hash: hashValue);
-
-                }else if(snapshot.hasError){
-                  return ErrorRegister();
-                }
-                return Center(child: CircularProgressIndicator());
-              },
-            ),
+        ),
       ),
     );
   }

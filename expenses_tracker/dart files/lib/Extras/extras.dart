@@ -270,6 +270,30 @@ class _ErrorRegister extends State<ErrorRegister>{
   }
 }
 
+class ShowMessage extends StatelessWidget{
+
+  final String title, content;
+
+  ShowMessage({this.title, this.content});
+
+  @override
+  Widget build(BuildContext context){
+    return AlertDialog(
+      title: Text(title),
+      content: Text(content),
+      actions: <Widget>[
+        // FlatButton(
+        //   child: Text('OK'),
+        //   onPressed: (){
+        //     Navigator.pop(context, false);
+        //   },
+        // ),
+      ],
+    );
+  }
+}
+
+
 // class Input extends TextFormField{
 
 //   final String labelText;
