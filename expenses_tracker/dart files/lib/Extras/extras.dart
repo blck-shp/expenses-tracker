@@ -222,6 +222,38 @@ class ErrorMessage extends StatelessWidget{
   }
 }
 
+class PromptMessage extends StatelessWidget{
+
+  final String header;
+  final String text;
+
+  PromptMessage({this.header , this.text});
+
+  @override
+  Widget build(BuildContext context){
+    return AlertDialog(
+      title: Text(header),
+      content: Text(text),
+      actions: <Widget>[
+        FlatButton(
+          child: Text("NO"),
+          onPressed: (){
+            // Navigator.of(context).pop(false);
+            Navigator.pop(context);
+          },
+        ),
+        FlatButton(
+          child: Text("YES"),
+          onPressed: (){
+            Navigator.pop(context);
+            Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+  }
+}
+
 class ErrorLogin extends StatefulWidget{
   @override
   _ErrorLogin createState() => _ErrorLogin();

@@ -42,6 +42,8 @@ class _Registration extends State<Registration>{
     }),
   );
 
+  String value;
+
   print('The email is $email');
   print('The password is $password');
   print('The status code is ${response.statusCode}');
@@ -68,10 +70,18 @@ class _Registration extends State<Registration>{
   }
 
   if(response.statusCode == 200){
-    return fromJsonMessage(json.decode(response.body));
+    value = fromJsonMessage(json.decode(response.body));
+  }else if(response.statusCode == 400){
+    // throw Exception('Failed to register');
+    showDialog(
+      context: context,
+      builder: (_) => ErrorMessage(header: "Error" , text: "Email address has already been taken. Please try again."),                        
+    );     
   }else{
     throw Exception('Failed to register');
   }
+
+  return value;
 }
 
   @override

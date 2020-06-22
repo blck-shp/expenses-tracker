@@ -188,7 +188,7 @@ class _Dashboard extends State<Dashboard>{
                                   child: ListView.separated(
                                     physics: const NeverScrollableScrollPhysics(),
                                     padding: EdgeInsets.zero,
-                                    itemCount: snapshot.data.pagination.count,
+                                    itemCount: snapshot.data.pagination.count >= 2 ? 2 : 1,
                                     itemBuilder: (BuildContext context , int index){
                                       String date = snapshot.data.records[index].date;
                                       String dateWithT = date.substring(0, 10);

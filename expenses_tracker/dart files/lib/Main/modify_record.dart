@@ -12,15 +12,27 @@ import 'package:date_format/date_format.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
+
+
 class ModifyRecord extends StatefulWidget{
   final bool isEmpty;
   final String hash;
 
-  ModifyRecord({this.isEmpty , this.hash});
+  final String notes;
+  final String amount;
+  final DateTime date;
+  final DateTime time;
+  final String categoryName;
+  final int recordType;
+  final int categoryId;
+  final int id;
 
-  
+
+  ModifyRecord({this.isEmpty , this.hash, this.notes, this.amount, this.date, this.time, this.categoryName, this.recordType, this.categoryId, this.id});
+
+
   @override
-  _ModifyRecord createState() => _ModifyRecord(isEmpty: isEmpty, hash: hash);
+  _ModifyRecord createState() => _ModifyRecord(isEmpty: isEmpty, hash: hash, notes: notes, amount: amount, date: date, time: time, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id);
 }
 
 
@@ -30,18 +42,70 @@ class _ModifyRecord extends State<ModifyRecord>{
   void dispose(){
     super.dispose();
   }
+  
+  final bool isEmpty;
+  final String hash;
 
-  dynamic fromJsonId(Map<String, dynamic> json){
-    var id = json['id'];
-    setState(() {
-      if(id != null)
-        Navigator.of(context).pop(true);
-        
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
-        // Navigator.pop(context, '$_icon');
-    });
-    return id;
+  final String notes;
+  final String amount;
+  final DateTime date;
+  final DateTime time;
+  final String categoryName;
+  final int recordType;
+  final int categoryId;
+  final int id;
+
+  _ModifyRecord({this.isEmpty, this.hash, this.notes, this.amount, this.date, this.time, this.categoryName, this.recordType, this.categoryId, this.id});
+  
+  List<bool> _selections = List.generate(2, (_) => false);
+  DateTime _dateTime = DateTime.now();
+  DateTime _date = DateTime.now();
+  int _recordType;
+
+  String _convertedDate;
+  String _convertedTime;
+  int _categoryId;
+
+  
+  
+  TextEditingController _controller1 = new TextEditingController();
+  TextEditingController _controller2 = new TextEditingController();
+  TextEditingController _controller3 = new TextEditingController();
+  TextEditingController _controller4 = new TextEditingController();
+  TextEditingController _controller5 = new TextEditingController();
+
+  final _formKey = GlobalKey<FormState>();
+
+
+
+  Future<int> updateRecord(double amount, String notes, String date , String time , int recordType , int categoryId, String hash, int id) async{
+  final http.Response response = await http.patch('http://expenses.koda.ws/api/v1/records/$id',
+    headers: <String, String>{
+      'Content-Type': 'application/json; charset=UTF-8',
+      'Accept': 'application/json',
+      'Authorization': '$hash',
+    },
+    body: jsonEncode(<String , dynamic>{
+      'record': {
+        'amount': amount,
+        'notes': notes,
+        'record_type': recordType,
+        'date': '${date+time}',
+        'category_id': categoryId
+      },
+    }),
+  );
+
+  print('The status code of the patch is ${response.statusCode}');
+
+  if(response.statusCode == 200){
+    return fromJsonId(json.decode(response.body));
+    
+    }else{
+      throw Exception('Failed to login');
+    }
   }
+
 
   Future<int> createRecord(double amount, String notes, String date , String time , int recordType , int categoryId, String hash) async{
   final http.Response response = await http.post('http://expenses.koda.ws/api/v1/records',
@@ -66,37 +130,64 @@ class _ModifyRecord extends State<ModifyRecord>{
   if(response.statusCode == 200){
     return fromJsonId(json.decode(response.body));
     
-  }else{
-    throw Exception('Failed to login');
+    }else{
+      throw Exception('Failed to login');
+    }
   }
-}
 
-  final bool isEmpty;
-  final String hash;
+  dynamic fromJsonId(Map<String, dynamic> json){
+    var id = json['id'];
+    setState(() {
+      if(id != null)
+        Navigator.of(context).pop(true);
+        Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
+    });
+    return id;
+  }
 
-  _ModifyRecord({this.isEmpty , this.hash});
-  
-  List<bool> _selections = List.generate(2, (_) => false);
-  DateTime _dateTime = DateTime.now();
-  DateTime _date = DateTime.now();
-  int _recordType;
 
-  String _convertedDate;
-  String _convertedTime;
-  int _categoryId;
-  
-  TextEditingController _controller1 = new TextEditingController();
-  TextEditingController _controller2 = new TextEditingController();
-  TextEditingController _controller3 = new TextEditingController();
-  TextEditingController _controller4 = new TextEditingController();
-  TextEditingController _controller5 = new TextEditingController();
 
-  final _formKey = GlobalKey<FormState>();
-
-  @override
-  
+  @override  
   Widget build(BuildContext context){
+
+
+    if(isEmpty == false){
+      _controller1.text = notes;
+      _controller2.text = amount;
+
+      print(';zcxvjl;ksoipuewrlkjs');
+
+      _convertedDate = formatDate(DateTime(int.parse('${date.year}') , int.parse('${date.month}') , int.parse('${date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
+      _controller3.text = formatDate(DateTime(int.parse('${date.year}') , int.parse('${date.month}') , int.parse('${date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
+
+      print('asdfsdafasdfsa');
+
+      String formatDateTime(DateTime time){
+        return '${time.hour}:${time.minute}';
+      }
+
+      _convertedTime = 'T' + formatDateTime(time).toString() + ':00.000Z';
+      _controller4.text = formatDateTime(time).toString();
+
+      _controller5.text = categoryName;
+
+      setState(() {
+        _recordType = recordType;
+        for(int i = 0; i < _selections.length; i++){
+          if(i == recordType){
+            _selections[i] = true;
+          }else{
+            _selections[i] = false;
+          }
+        }    
+      });
+
+      _categoryId = categoryId;
+
+    }
+    
     return Scaffold(
+      
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: widget.isEmpty == true ? Text("Add Record") : Text("Edit Record"),
@@ -106,16 +197,19 @@ class _ModifyRecord extends State<ModifyRecord>{
         ? <Widget>[
           IconButton(
             onPressed: ()async{
-                if(_formKey.currentState.validate()){
-                  createRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash);
-                }else if((_selections[0] == false && _selections[1] == false) || _formKey.currentState.validate() == false){
-                  setState(() {
-                    showDialog(
-                      context: context,
-                      builder: (context) => ErrorMessage(header: "Error" , text: "Please complete the form before proceeding."), 
-                    );
-                  });
-                }
+              if(_formKey.currentState.validate() == true && (_selections[0] == true || _selections[1] == true)){
+                print('The value of formkey is ${_formKey.currentState.validate()}');
+                print('Hehehehe');
+                createRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash);
+              }
+              else{
+                setState(() {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ErrorMessage(header: "Error" , text: "Please complete the form before proceeding."), 
+                  );
+                });
+              }
             },
             icon: Icon(Icons.check),
           ),
@@ -131,9 +225,39 @@ class _ModifyRecord extends State<ModifyRecord>{
         : <Widget>[
           IconButton(
             onPressed: (){
-
+              print('Heheheheheheh');
+              
+              setState((){
+                
+                showDialog(
+                  
+                  context: context,
+                  builder: (context) => PromptMessage(header: "Prompt" , text: "Are you sure you want to discard these changes?"),
+                );
+              });
+              
             },
-            icon: Icon(Icons.search),
+            icon: Icon(Icons.delete),
+          ),
+          IconButton(
+            onPressed: ()async{
+              // updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
+              // Future<int> updateRecord(double amount, String notes, String date , String time , int recordType , int categoryId, String hash, int id) async{
+              if(_formKey.currentState.validate() == true && (_selections[0] == true || _selections[1] == true)){
+                print('The value of formkey is ${_formKey.currentState.validate()}');
+                print('Hasdfzxcvczxvzxcddsfasd');
+                updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
+              }
+              else{
+                setState(() {
+                  showDialog(
+                    context: context,
+                    builder: (context) => ErrorMessage(header: "Error" , text: "Please complete the form before proceeding."), 
+                  );
+                });
+              }
+            },
+            icon: Icon(Icons.check),
           ),
         ],
       ),
@@ -169,8 +293,7 @@ class _ModifyRecord extends State<ModifyRecord>{
           ),
         ),
       ),
-      floatingActionButton: FloatingButton(nextPage: ModifyRecord(hash: hash,),),
-            body: Column(
+      body:  Column(
         children: <Widget>[
           Expanded(
             child: Container(
@@ -214,7 +337,7 @@ class _ModifyRecord extends State<ModifyRecord>{
                       child: TextFormField(
                         controller: _controller1,
                         validator: (value){
-                          if(value.isEmpty)
+                          if(value.isNotEmpty)
                             return null;
                           return null;
                         },
@@ -247,7 +370,7 @@ class _ModifyRecord extends State<ModifyRecord>{
                       child: TextFormField(
                         controller: _controller2,
                         validator: (value){
-                          if(value.isEmpty)
+                          if(value.isNotEmpty)
                             return null;
                           return null;
                         },
@@ -285,7 +408,7 @@ class _ModifyRecord extends State<ModifyRecord>{
                               readOnly: true,
                               showCursor: true,
                               validator: (value){
-                                if(value.isEmpty)
+                                if(value.isNotEmpty)
                                   return null;
                                 return null;
                               },
@@ -386,7 +509,7 @@ class _ModifyRecord extends State<ModifyRecord>{
                               showCursor: true,
                               controller: _controller4,
                               validator: (value){
-                                if(value.isEmpty)
+                                if(value.isNotEmpty)
                                   return null;
                                 return null;
                               },
@@ -491,7 +614,7 @@ class _ModifyRecord extends State<ModifyRecord>{
                         showCursor: true,
                         controller: _controller5,
                         validator: (value){
-                          if(value.isEmpty)
+                          if(value.isNotEmpty)
                             return null;
                           return null;
                         },
@@ -540,3 +663,63 @@ class _ModifyRecord extends State<ModifyRecord>{
     );
   }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+// ================================
+
+      // Future<String> modifyRecords(String hash, int updateData) async{
+      //   final response = await http.get('http://expenses.koda.ws/api/v1/records/$updateData',
+      //     headers: {
+      //       HttpHeaders.authorizationHeader: hash,
+      //     },
+      //   );
+
+      //   print('The status code is ${response.statusCode}');
+
+      //   void recordsFromJsonCategory(Map<String, dynamic> parsedJson){
+
+      //     _controller5.text = parsedJson['name'];
+          
+      //   }
+
+      //   void recordsFromJson(Map<String , dynamic> parsedJson){
+      //     var list = parsedJson['category'];
+      //     recordsFromJsonCategory(list);
+      //     _controller1.text = parsedJson['notes'];
+      //     _controller2.text = parsedJson['amount'].toString();
+      //     var recordType = parsedJson['record_type'];
+          
+          
+      //     print('The value of _controller1.text ${_controller1.text}');
+      //     for(int i = 0; i < _selections.length; i++){
+      //       if(i == recordType){
+      //         _selections[i] = true;
+      //       }else{
+      //         _selections[i] = false;
+      //       }
+      //     }
+      //   }
+
+        
+      //   if(response.statusCode == 200){
+      //     recordsFromJson(json.decode(response.body));
+      //     return 'Success';
+      //   }else{
+      //     throw Exception('Failed to get the data');
+      //   }
+      // }
+
+      // print('The value of _controller1.text ${_controller1.text}');
+
+      // modifyRecords(hash, updateData);
+      // print('The value of _controller1.text ${_controller1.text}');
