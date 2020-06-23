@@ -1,14 +1,13 @@
 import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:expenses_tracker/Extras/sizes.dart';
 import 'package:flutter/material.dart';
-
 import 'dart:async';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
 import 'dashboard.dart';
 
 class Login extends StatefulWidget{
+
   @override
   _Login createState() => _Login();
 }
@@ -17,7 +16,6 @@ class _Login extends State<Login>{
 
   TextEditingController _controller1 = TextEditingController();
   TextEditingController _controller2 = TextEditingController();
-
 
   String parseJson(Map<String, dynamic> parsedJson){
     String message, token, val;
@@ -35,9 +33,7 @@ class _Login extends State<Login>{
     }else{
       val = 'Error';
     }
-    
     return val;
-
   }
 
   bool parseJsonUser(Map<String, dynamic> parsedJson){
@@ -67,9 +63,6 @@ class _Login extends State<Login>{
         'password': password
       }), 
     );
-
-    print('The status code is ${response.statusCode}');
-
 
     if(response.statusCode == 200){
       return parseJson(json.decode(response.body));
@@ -160,6 +153,7 @@ class _Login extends State<Login>{
                     Expanded(
                       child: TextFormField(
                         controller: _controller2,
+                        obscureText: true,
                         decoration: InputDecoration(
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(
@@ -197,16 +191,11 @@ class _Login extends State<Login>{
                 children: <Widget>[
                   Expanded(
                     child: Container(
-                    ),
-                  ),
-                  Expanded(
-                    child: Container(
                       margin: EdgeInsets.only(top: 10.0 , bottom: 10.0),
                       child: MaterialButton(
                         color: Color(0xffffffff),
                         minWidth: displayWidth(context) * .75,
                         onPressed: () async {
-
                           setState(() {
                             if(_controller1.text == '' || _controller2.text == ''){
                               showDialog(
@@ -228,8 +217,10 @@ class _Login extends State<Login>{
                     ),
                   ),
                   Expanded(
-                    child: Container(
-                    ),
+                    child: Container(),
+                  ),
+                  Expanded(
+                    child: Container(),
                   ),
                 ],
               ),

@@ -1,12 +1,9 @@
 import 'dart:convert';
-
 import 'package:expenses_tracker/Extras/extras.dart';
-// import 'package:expenses_tracker/Main/modify_record.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-
 import 'dashboard.dart';
-import 'onboarding.dart';
+import 'main.dart';
 
 
 class Records extends StatefulWidget{
@@ -31,20 +28,6 @@ class _Records extends State<Records>{
         title: Text("Records"),
         backgroundColor: Color(0xff246c55),
         centerTitle: true,
-        // actions: <Widget>[
-        //   IconButton(
-        //     onPressed: (){
-
-        //     },
-        //     icon: Icon(Icons.delete)
-        //   ),
-        //   IconButton(
-        //     onPressed: (){
-
-        //     },
-        //     icon: Icon(Icons.search),
-        //   ),
-        // ],
       ),
       drawer: Drawer(
         child: Container(
@@ -78,7 +61,6 @@ class _Records extends State<Records>{
           ),
         ),
       ),
-      // floatingActionButton: FloatingButton(nextPage: ModifyRecord(),),
       body: FutureBuilder<CategoryList>(
         future: getList(),
         builder: (context , snapshot){
@@ -86,14 +68,12 @@ class _Records extends State<Records>{
             if(snapshot.hasError){
               return Center(child: Text("Error"));
             }
-
             return ListView.separated(
               itemBuilder: (_, index){
                 return Dismissible(
                   key: ValueKey(snapshot.data.categories[index].id),
                   direction: DismissDirection.startToEnd,
                   onDismissed: (direction){
-
                   },
                   confirmDismiss: (direction) async{
                     final result = await showDialog(
@@ -110,8 +90,6 @@ class _Records extends State<Records>{
                   child: ListTile(
                     leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${snapshot.data.categories[index].icon}')),
                     title: Text(snapshot.data.categories[index].name),
-                    // subtitle: Text(snapshot.data.categories[index].icon),
-
                     onTap: (){
                       Navigator.pop(context, ['${snapshot.data.categories[index].name}' , snapshot.data.categories[index].id]);
                     },

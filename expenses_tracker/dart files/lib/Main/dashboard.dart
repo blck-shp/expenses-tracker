@@ -1,14 +1,11 @@
 import 'dart:convert';
 import 'dart:io';
-
 import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:expenses_tracker/Extras/sizes.dart';
 import 'package:expenses_tracker/Main/modify_record.dart';
-// import 'package:expenses_tracker/Main/records.dart';
-
 import 'package:flutter/material.dart';
 import 'list_records.dart';
-import 'onboarding.dart';
+import 'main.dart';
 import 'package:http/http.dart' as http;
 import 'package:charts_flutter/flutter.dart' as charts;
 
@@ -29,7 +26,6 @@ class Overview{
 
 class Dashboard extends StatefulWidget{
   final String hash;
-
 
   Dashboard({this.hash});
 
@@ -75,8 +71,6 @@ class _Dashboard extends State<Dashboard>{
     }
   }
 
-  var icon;
-
   @override
   Widget build(BuildContext context){
     print('The value of hash is in dashboard is $hash');
@@ -120,7 +114,6 @@ class _Dashboard extends State<Dashboard>{
           ),
         ),
       ),
-      // floatingActionButton: FloatingButton(nextPage: ModifyRecord(isEmpty: true, hash: hash),),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
           Route route = MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: true, hash: hash));
@@ -141,11 +134,9 @@ class _Dashboard extends State<Dashboard>{
                 children: <Widget>[
                   Expanded(
                     child: Container(
-                      // width: displayWidth(context) * .90,
                       child: Card(
                         child: Container(
                           width: displayWidth(context) * .90,
-                          // child: FetchOverview(hash: hash,),
                           child: FutureBuilder<Overview>(
                             future: getOverview(hash),
                             builder: (context , snapshot){
@@ -170,7 +161,6 @@ class _Dashboard extends State<Dashboard>{
                           child: Column(
                             children: <Widget>[
                               Expanded(
-                                // child: Text('RECENT'),
                                 child: Container(
                                   padding: EdgeInsets.only(left: 20.0),
                                   alignment: Alignment.centerLeft,
@@ -200,7 +190,6 @@ class _Dashboard extends State<Dashboard>{
                                       );
                                     }, 
                                     separatorBuilder: (BuildContext context , int index) => const Divider(), 
-                                    
                                   ),
                                 ),
                               ),
@@ -217,7 +206,6 @@ class _Dashboard extends State<Dashboard>{
                                       ),
                                     ),
                                   ),
-                                  
                                 ),
                               ),
                             ],
@@ -228,8 +216,7 @@ class _Dashboard extends State<Dashboard>{
                   ),
                   Expanded(
                     flex: 1,
-                    child: Container(
-                    ),
+                    child: Container(),
                   ),
                 ],
               );
@@ -266,7 +253,6 @@ class EmptyDashboard extends StatelessWidget{
                 ),
                 Expanded(
                   child: Center(child: Image.asset('assets/images/empty_icon.png'),)
-                  // child: Center(child: Text('$hash'),),
                 ),
                 Expanded(
                   child: Center(child: Text("There are no records here yet.", style: TextStyle(fontSize: 16.0 , color: Color(0xff555555)),),),
@@ -282,14 +268,10 @@ class EmptyDashboard extends StatelessWidget{
                 ),
                 Expanded(
                   child: Container(
-                    // child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "START TRACKING", backgroundColor: Colors.white, fontWeight: FontWeight.bold, nextPage: ModifyRecord(isEmpty: true, hash: hash,),
                     child: MaterialButton(
                       height: displayHeight(context),
                       minWidth: displayWidth(context) * .75,
                       onPressed: (){
-                        print('The value of hash is $hash');
-                        // Route route = MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: true, hash: hash,));
-                        // Navigator.push(context , route);
                         Navigator.of(context).push(MaterialPageRoute(builder: (_) => ModifyRecord(isEmpty: true, hash: hash,)));
                       },
                       color: Color(0xffffffff),
@@ -378,7 +360,6 @@ class _ChartsOverview extends State<ChartsOverview>{
 
     return [
       charts.Series<OverviewData, String>(
-        
         id: 'Overview',
         domainFn: (OverviewData overview, _) => overview.category,
         measureFn: (OverviewData overview, _) => overview.amount,
@@ -405,14 +386,12 @@ Future<RecordsCategory> getRecords(String hash) async{
     },
   );
 
-  print('The status code is ${response.statusCode}');
   return postFromJsonRecords(response.body);
 }
 
 RecordsCategory postFromJsonRecords(String str){
   final jsonData = json.decode(str);
   var value = RecordsCategory.fromJson(jsonData);
-  print('The value is $value');
   return value;
 }
 
@@ -429,7 +408,6 @@ class Pagination{
   Pagination({this.currentUrl , this.nextUrl , this.previousUrl , this.current , this.perPage , this.pages , this.count});
 
   factory Pagination.fromJson(Map<String , dynamic> parsedJson){
-    print('The value of parsedJson in Pagiation is $parsedJson');
     return Pagination(
       currentUrl: parsedJson['current_url'],
       nextUrl: parsedJson['next_url'],
@@ -454,7 +432,6 @@ class RecordsCategory{
     Pagination parsedPagination = Pagination.fromJson(value1);
     
     var value2 = parsedJson['records'] as List;
-    print('The value of value2 is ${value2.length}');
 
     List<RecordsName> listRecords = value2.map((e) => RecordsName.fromJson(e)).toList();
 
@@ -477,11 +454,8 @@ class RecordsName{
 
   factory RecordsName.fromJson(Map<String , dynamic> parsedJson){
     var list = parsedJson['category'];
-    print('The value of list is $list');
-    print('The value of parsedJson in Records is $parsedJson');
 
     Category objectCategory = Category.fromJson(list);
-    print('The objectCategory is ${objectCategory.name}');
 
     return RecordsName(
       id: parsedJson['id'],
@@ -501,7 +475,6 @@ class Category{
   Category({this.id , this.name});
 
   factory Category.fromJson(Map<String , dynamic> parsedJson){
-    print('The value of parsedJson is $parsedJson');
     return Category(
       id: parsedJson['id'],
       name: parsedJson['name'],

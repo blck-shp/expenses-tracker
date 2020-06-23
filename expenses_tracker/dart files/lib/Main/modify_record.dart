@@ -1,18 +1,13 @@
 import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
-
 import 'dashboard.dart';
 import 'list_records.dart';
-import 'onboarding.dart';
+import 'main.dart';
 import 'records.dart';
-
 import 'package:date_format/date_format.dart';
-
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-
-
 
 class ModifyRecord extends StatefulWidget{
   final bool isEmpty;
@@ -27,9 +22,7 @@ class ModifyRecord extends StatefulWidget{
   final int categoryId;
   final int id;
 
-
   ModifyRecord({this.isEmpty , this.hash, this.notes, this.amount, this.date, this.time, this.categoryName, this.recordType, this.categoryId, this.id});
-
 
   @override
   _ModifyRecord createState() => _ModifyRecord(isEmpty: isEmpty, hash: hash, notes: notes, amount: amount, date: date, time: time, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id);
@@ -66,8 +59,6 @@ class _ModifyRecord extends State<ModifyRecord>{
   String _convertedTime;
   int _categoryId;
 
-  
-  
   TextEditingController _controller1 = new TextEditingController();
   TextEditingController _controller2 = new TextEditingController();
   TextEditingController _controller3 = new TextEditingController();
@@ -75,8 +66,6 @@ class _ModifyRecord extends State<ModifyRecord>{
   TextEditingController _controller5 = new TextEditingController();
 
   final _formKey = GlobalKey<FormState>();
-
-
 
   Future<int> updateRecord(double amount, String notes, String date , String time , int recordType , int categoryId, String hash, int id) async{
   final http.Response response = await http.patch('http://expenses.koda.ws/api/v1/records/$id',
@@ -96,11 +85,8 @@ class _ModifyRecord extends State<ModifyRecord>{
     }),
   );
 
-  print('The status code of the patch is ${response.statusCode}');
-
   if(response.statusCode == 200){
     return fromJsonId(json.decode(response.body));
-    
     }else{
       throw Exception('Failed to login');
     }
@@ -125,11 +111,8 @@ class _ModifyRecord extends State<ModifyRecord>{
     }),
   );
 
-  print('The status code is ${response.statusCode}');
-
   if(response.statusCode == 200){
     return fromJsonId(json.decode(response.body));
-    
     }else{
       throw Exception('Failed to login');
     }
@@ -145,22 +128,14 @@ class _ModifyRecord extends State<ModifyRecord>{
     return id;
   }
 
-
-
   @override  
   Widget build(BuildContext context){
-
-
     if(isEmpty == false){
       _controller1.text = notes;
       _controller2.text = amount;
 
-      print(';zcxvjl;ksoipuewrlkjs');
-
       _convertedDate = formatDate(DateTime(int.parse('${date.year}') , int.parse('${date.month}') , int.parse('${date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
       _controller3.text = formatDate(DateTime(int.parse('${date.year}') , int.parse('${date.month}') , int.parse('${date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
-
-      print('asdfsdafasdfsa');
 
       String formatDateTime(DateTime time){
         return '${time.hour}:${time.minute}';
@@ -187,7 +162,6 @@ class _ModifyRecord extends State<ModifyRecord>{
     }
     
     return Scaffold(
-      
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
         title: widget.isEmpty == true ? Text("Add Record") : Text("Edit Record"),
@@ -198,8 +172,6 @@ class _ModifyRecord extends State<ModifyRecord>{
           IconButton(
             onPressed: ()async{
               if(_formKey.currentState.validate() == true && (_selections[0] == true || _selections[1] == true)){
-                print('The value of formkey is ${_formKey.currentState.validate()}');
-                print('Hehehehe');
                 createRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash);
               }
               else{
@@ -225,27 +197,18 @@ class _ModifyRecord extends State<ModifyRecord>{
         : <Widget>[
           IconButton(
             onPressed: (){
-              print('Heheheheheheh');
-              
               setState((){
-                
                 showDialog(
-                  
                   context: context,
                   builder: (context) => PromptMessage(header: "Prompt" , text: "Are you sure you want to discard these changes?"),
                 );
               });
-              
             },
             icon: Icon(Icons.delete),
           ),
           IconButton(
             onPressed: ()async{
-              // updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
-              // Future<int> updateRecord(double amount, String notes, String date , String time , int recordType , int categoryId, String hash, int id) async{
               if(_formKey.currentState.validate() == true && (_selections[0] == true || _selections[1] == true)){
-                print('The value of formkey is ${_formKey.currentState.validate()}');
-                print('Hasdfzxcvczxvzxcddsfasd');
                 updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
               }
               else{
@@ -413,7 +376,6 @@ class _ModifyRecord extends State<ModifyRecord>{
                                 return null;
                               },
                               controller: _controller3,
-                              
                               onTap: (){
                               showCupertinoModalPopup(
                                 context: context, 
@@ -447,7 +409,6 @@ class _ModifyRecord extends State<ModifyRecord>{
                                                       onPressed: (){
                                                         _convertedDate = formatDate(DateTime(int.parse('${_date.year}') , int.parse('${_date.month}') , int.parse('${_date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
                                                         _controller3.text = formatDate(DateTime(int.parse('${_date.year}') , int.parse('${_date.month}') , int.parse('${_date.day}')), [yyyy , ' ' , M , ' ' , dd]).toString();
-
                                                         Navigator.of(context).pop(false);
                                                       },
                                                     ),
@@ -544,13 +505,11 @@ class _ModifyRecord extends State<ModifyRecord>{
                                                       color: Color(0xffffffff),
                                                       child: Text("Done"),
                                                       onPressed: (){
-
                                                         String formatDateTime(DateTime dateTime){
                                                           return '${dateTime.hour}:${dateTime.minute}';
                                                         }
                                                         _convertedTime = 'T' + formatDateTime(_dateTime).toString() + ':00.000Z';
                                                         _controller4.text = formatDateTime(_dateTime).toString();
-
                                                         Navigator.of(context).pop(false);
                                                       },
                                                     ),
@@ -663,63 +622,3 @@ class _ModifyRecord extends State<ModifyRecord>{
     );
   }
 }
-
-
-
-
-
-
-
-
-
-
-
-
-// ================================
-
-      // Future<String> modifyRecords(String hash, int updateData) async{
-      //   final response = await http.get('http://expenses.koda.ws/api/v1/records/$updateData',
-      //     headers: {
-      //       HttpHeaders.authorizationHeader: hash,
-      //     },
-      //   );
-
-      //   print('The status code is ${response.statusCode}');
-
-      //   void recordsFromJsonCategory(Map<String, dynamic> parsedJson){
-
-      //     _controller5.text = parsedJson['name'];
-          
-      //   }
-
-      //   void recordsFromJson(Map<String , dynamic> parsedJson){
-      //     var list = parsedJson['category'];
-      //     recordsFromJsonCategory(list);
-      //     _controller1.text = parsedJson['notes'];
-      //     _controller2.text = parsedJson['amount'].toString();
-      //     var recordType = parsedJson['record_type'];
-          
-          
-      //     print('The value of _controller1.text ${_controller1.text}');
-      //     for(int i = 0; i < _selections.length; i++){
-      //       if(i == recordType){
-      //         _selections[i] = true;
-      //       }else{
-      //         _selections[i] = false;
-      //       }
-      //     }
-      //   }
-
-        
-      //   if(response.statusCode == 200){
-      //     recordsFromJson(json.decode(response.body));
-      //     return 'Success';
-      //   }else{
-      //     throw Exception('Failed to get the data');
-      //   }
-      // }
-
-      // print('The value of _controller1.text ${_controller1.text}');
-
-      // modifyRecords(hash, updateData);
-      // print('The value of _controller1.text ${_controller1.text}');

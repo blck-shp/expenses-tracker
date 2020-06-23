@@ -13,8 +13,8 @@ void main() => runApp(
 );
 
 class Onboarding extends StatefulWidget{
-  @override
 
+  @override
   _Onboarding createState() => _Onboarding();
 }
 
@@ -31,8 +31,7 @@ class _Onboarding extends State<Onboarding>{
               child: Column(
                 children: <Widget>[
                   Expanded(
-                    child: Container(
-                    ),
+                    child: Container(),
                   ),
                   Expanded(
                     child: Center(
@@ -73,7 +72,7 @@ class _Onboarding extends State<Onboarding>{
                                     ),
                                   ),
                                   TextSpan(
-                                    text: "\n\n"
+                                    text: "\n\n",
                                   ),
                                   TextSpan(
                                     text: "Plan your budget",
@@ -90,8 +89,7 @@ class _Onboarding extends State<Onboarding>{
                     ),
                   ),
                   Expanded(
-                    child: Container(
-                    ),
+                    child: Container(),
                   ),
                 ],
               ),
@@ -120,8 +118,7 @@ class _Onboarding extends State<Onboarding>{
                     ),
                   ),
                   Expanded(
-                    child: Container(
-                    ),
+                    child: Container(),
                   ),
                 ],
               ),
