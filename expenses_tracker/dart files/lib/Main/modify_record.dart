@@ -65,7 +65,12 @@ class _ModifyRecord extends State<ModifyRecord>{
   TextEditingController _controller4 = new TextEditingController();
   TextEditingController _controller5 = new TextEditingController();
 
-  final _formKey = GlobalKey<FormState>();
+  String value1;
+  String value2;
+  String value3;
+  String value4;
+  String value5;
+  int value6;
 
   Future<int> updateRecord(double amount, String notes, String date , String time , int recordType , int categoryId, String hash, int id) async{
   final http.Response response = await http.patch('http://expenses.koda.ws/api/v1/records/$id',
@@ -159,6 +164,14 @@ class _ModifyRecord extends State<ModifyRecord>{
 
       _categoryId = categoryId;
 
+
+      value1 = _controller1.text;
+      value2 = _controller2.text;
+      value3 = _controller3.text;
+      value4 = _controller4.text;
+      value5 = _controller5.text;
+      value6 = _recordType;
+
     }
     
     return Scaffold(
@@ -187,6 +200,7 @@ class _ModifyRecord extends State<ModifyRecord>{
           IconButton(
             onPressed: ()async{
               if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
+                Center(child: CircularProgressIndicator());
                 createRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash);
               }
               else{
@@ -216,8 +230,13 @@ class _ModifyRecord extends State<ModifyRecord>{
           IconButton(
             onPressed: ()async{
               if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
-                updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
-              }
+                if(value1 != _controller1.text || value2 != _controller2.text || value3 != _controller3.text || value4 != _controller4.text || value5 != _controller5.text || value6 != recordType){
+                  Center(child: CircularProgressIndicator());
+                  updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
+                }else{
+                  Navigator.of(context).pop(false);
+                }
+              } 
               else{
                 setState(() {
                   showDialog(
@@ -269,7 +288,6 @@ class _ModifyRecord extends State<ModifyRecord>{
             child: Container(
               padding: EdgeInsets.only(top: 10.0, bottom: 10.0, left: 50.0, right: 50.0),
               child: Form(
-                key: _formKey,
                 child: Column(
                   children: <Widget>[
                     Expanded(
@@ -306,11 +324,6 @@ class _ModifyRecord extends State<ModifyRecord>{
                     Expanded(
                       child: TextFormField(
                         controller: _controller1,
-                        validator: (value){
-                          if(value.isNotEmpty)
-                            return null;
-                          return null;
-                        },
                         decoration: InputDecoration(
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(
@@ -339,11 +352,6 @@ class _ModifyRecord extends State<ModifyRecord>{
                     Expanded(
                       child: TextFormField(
                         controller: _controller2,
-                        validator: (value){
-                          if(value.isNotEmpty)
-                            return null;
-                          return null;
-                        },
                         keyboardType: TextInputType.number,
                         decoration: InputDecoration(
                           enabledBorder: UnderlineInputBorder(
@@ -377,11 +385,6 @@ class _ModifyRecord extends State<ModifyRecord>{
                             child: TextFormField(
                               readOnly: true,
                               showCursor: true,
-                              validator: (value){
-                                if(value.isNotEmpty)
-                                  return null;
-                                return null;
-                              },
                               controller: _controller3,
                               onTap: (){
                               showCupertinoModalPopup(
@@ -475,11 +478,6 @@ class _ModifyRecord extends State<ModifyRecord>{
                               readOnly: true,
                               showCursor: true,
                               controller: _controller4,
-                              validator: (value){
-                                if(value.isNotEmpty)
-                                  return null;
-                                return null;
-                              },
                               onTap: (){
                               showCupertinoModalPopup(
                                 context: context, 
@@ -577,11 +575,6 @@ class _ModifyRecord extends State<ModifyRecord>{
                         readOnly: true,
                         showCursor: true,
                         controller: _controller5,
-                        validator: (value){
-                          if(value.isNotEmpty)
-                            return null;
-                          return null;
-                        },
                         onTap: () async{
                           final result = await Navigator.of(context).push(MaterialPageRoute(builder: (value) => Records()));
 
