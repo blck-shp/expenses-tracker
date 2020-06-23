@@ -117,6 +117,11 @@ class _Registration extends State<Registration>{
                     Expanded(
                       child: TextFormField(
                         controller: _controller1,
+                        validator: (value){
+                          if(value.isEmpty)
+                            return null;
+                          return null;
+                        },
                         decoration: InputDecoration(
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(
@@ -145,6 +150,11 @@ class _Registration extends State<Registration>{
                     Expanded(
                       child: TextFormField(
                         controller: _controller2,
+                        validator: (value){
+                          if(value.isEmpty)
+                            return null;
+                          return null;
+                        },
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
                           enabledBorder: UnderlineInputBorder(
@@ -174,6 +184,11 @@ class _Registration extends State<Registration>{
                     Expanded(
                       child: TextFormField(
                         controller: _controller3,
+                        validator: (value){
+                          if(value.isEmpty)
+                            return null;
+                          return null;
+                        },
                         obscureText: true,
                         decoration: InputDecoration(
                           enabledBorder: UnderlineInputBorder(
@@ -203,6 +218,11 @@ class _Registration extends State<Registration>{
                     Expanded(
                       child: TextFormField(
                         controller: _controller4,
+                        validator: (value){
+                          if(value.isEmpty)
+                            return null;
+                          return null;
+                        },
                         obscureText: true,
                         decoration: InputDecoration(
                           enabledBorder: UnderlineInputBorder(
@@ -247,10 +267,24 @@ class _Registration extends State<Registration>{
                         color: Color(0xffffffff),
                         minWidth: displayWidth(context) * .75,
                         onPressed: () async{
-                          setState(() {
-                            String hash = 'Heheheh';
+                          String hash = 'hehehe';
+                          if(_controller1.text == '' || _controller2.text == '' || _controller3.text == '' || _controller4.text == ''){
+                              setState(() {
+                                showDialog(
+                                  context: context,
+                                  builder: (context) => ErrorMessage(header: "Error" , text: "Please complete the form before proceeding."), 
+                                );
+                              });         
+                          }else if(_controller3.text != _controller4.text){
+                            setState(() {
+                              showDialog(
+                                context: context,
+                                builder: (context) => ErrorMessage(header: "Error" , text: "Passwords don't match. Please try again."),
+                              );
+                            });          
+                          }else{
                             createAccount(_controller1.text , _controller2.text , _controller3.text , hash);
-                          });
+                          }
                         },
                         child: Text("Register",
                           style: TextStyle(fontSize: 20.0,

@@ -1,8 +1,5 @@
-import 'package:expenses_tracker/Main/login.dart';
-import 'package:expenses_tracker/Main/registration.dart';
 import 'package:flutter/material.dart';
 import 'sizes.dart';
-
 
 class ButtonFilled extends MaterialButton{
 
@@ -37,60 +34,6 @@ class ButtonFilled extends MaterialButton{
     );
   }
 }
-
-class ButtonChoices extends MaterialButton{
-
-  final double width;
-  final double height;
-  final double fontSize;
-  final String text;
-  final Color backgroundColor;
-  final FontWeight fontWeight;
-  final Color fontColor;
-
-
-  ButtonChoices({this.width , this.height , this.fontSize , this.text , this.backgroundColor , this.fontWeight , this.fontColor});
-
-  @override
-
-  Widget build(BuildContext context){
-    bool choice;
-    return MaterialButton(
-      height: displayHeight(context) * height,
-      minWidth: displayWidth(context) * width,
-      onPressed: (){
-        
-      },
-      
-      color: choice == true ? backgroundColor : Color(0xffffffff),
-      child: Text(
-        text,
-        style: TextStyle(
-          fontSize: fontSize,
-          fontWeight: fontWeight,
-          color: choice == true ? fontColor : Color(0xff555555),
-        ),
-      ),
-    );
-  }
-
-}
-
-                    // child: DatePicker(
-                    //         DateTime.now(),
-                    //         dateTextStyle: TextStyle(
-                    //           backgroundColor: Colors.red,
-                    //         ),
-                    //         initialSelectedDate: DateTime.now(),
-                    //         selectionColor: Colors.black,
-                    //         selectedTextColor: Colors.white,
-                    //         onDateChange: (date){
-                              
-                    //           setState(() {
-                                
-                    //           });
-                    //         },                
-                    // ),
 
 class TextLink extends Text{
 
@@ -132,8 +75,6 @@ class IconLink extends GestureDetector{
   Widget build(BuildContext context){
     return GestureDetector(
       onTap: (){
-        // Route route = MaterialPageRoute(builder: (context) => nextPage);
-        // Navigator.push(context , route);
         Future.delayed(Duration.zero, (){
           Navigator.of(context).push(MaterialPageRoute(builder: (_) => nextPage));
         });
@@ -154,24 +95,6 @@ class IconLink extends GestureDetector{
   }
 }
 
-class FloatingButton extends FloatingActionButton{
-
-  final Object nextPage;
-
-  FloatingButton({this.nextPage});
-
-  Widget build(BuildContext context){
-    return FloatingActionButton(
-      onPressed: (){
-        Route route = MaterialPageRoute(builder: (context) => nextPage);
-        Navigator.push(context , route); 
-      },
-      backgroundColor: Color(0xff246c55),
-      child: Icon(Icons.add),
-    );
-  }
-}
-
 class DeleteRecord extends StatelessWidget{
 
   @override
@@ -181,15 +104,15 @@ class DeleteRecord extends StatelessWidget{
       content: Text("Are you sure you want to delete this note?"),
       actions: <Widget>[
         FlatButton(
-          child: Text("Yes"),
-          onPressed: (){
-            Navigator.of(context).pop(true);
-          },
-        ),
-        FlatButton(
           child: Text("No"),
           onPressed: (){
             Navigator.of(context).pop(false);
+          },
+        ),
+        FlatButton(
+          child: Text("Yes"),
+          onPressed: (){
+            Navigator.of(context).pop(true);
           },
         ),
       ],
@@ -238,7 +161,6 @@ class PromptMessage extends StatelessWidget{
         FlatButton(
           child: Text("NO"),
           onPressed: (){
-            // Navigator.of(context).pop(false);
             Navigator.pop(context);
           },
         ),
@@ -247,54 +169,6 @@ class PromptMessage extends StatelessWidget{
           onPressed: (){
             Navigator.pop(context);
             Navigator.pop(context);
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class ErrorLogin extends StatefulWidget{
-  @override
-  _ErrorLogin createState() => _ErrorLogin();
-}
-
-class _ErrorLogin extends State<ErrorLogin>{
-  @override
-  Widget build(BuildContext context){
-    return AlertDialog(
-      title: Text('Error'),
-      content: Text('Please try again'),
-      actions: <Widget>[
-        FlatButton(
-          child: Text("OK"),
-          onPressed: (){
-            // Navigator.of(context).pop(false);
-            Navigator.of(context).push(MaterialPageRoute(builder: (_) => Login()));
-          },
-        ),
-      ],
-    );
-  }
-}
-
-class ErrorRegister extends StatefulWidget{
-  @override
-  _ErrorRegister createState() => _ErrorRegister();
-}
-
-class _ErrorRegister extends State<ErrorRegister>{
-  @override
-  Widget build(BuildContext context){
-    return AlertDialog(
-      title: Text('Error'),
-      content: Text('Email has already been taken. Please try again.'),
-      actions: <Widget>[
-        FlatButton(
-          child: Text("OK"),
-          onPressed: (){
-            // Navigator.of(context).pop(false);
-            Navigator.of(context).push(MaterialPageRoute(builder: (_) => Registration()));
           },
         ),
       ],
@@ -314,50 +188,7 @@ class ShowMessage extends StatelessWidget{
       title: Text(title),
       content: Text(content),
       actions: <Widget>[
-        // FlatButton(
-        //   child: Text('OK'),
-        //   onPressed: (){
-        //     Navigator.pop(context, false);
-        //   },
-        // ),
       ],
     );
   }
 }
-
-
-// class Input extends TextFormField{
-
-//   final String labelText;
-
-//   Input({this.labelText});
-
-//   Widget build(BuildContext context){
-//     return TextFormField(
-//       decoration: InputDecoration(
-//         enabledBorder: UnderlineInputBorder(
-//           borderSide: BorderSide(
-//             color: Color(0xff555555),
-//           ),
-//         ),
-//         focusedBorder: UnderlineInputBorder(
-//           borderSide: BorderSide(
-//             // color: Color(0xff246c55),
-//             color: Colors.red,
-//             width: 2.0,
-//           ),                            
-//         ),
-//         focusColor: Color(0xff246c55),
-//         focusedErrorBorder: UnderlineInputBorder(
-//           borderSide: BorderSide(
-//             color: Color(0xff246c55),
-//           ),                            
-//         ),
-//         labelText: labelText,
-//         labelStyle: TextStyle(
-//           color: Color(0xff555555),
-//         ),
-//       ),
-//     );
-//   }
-// }

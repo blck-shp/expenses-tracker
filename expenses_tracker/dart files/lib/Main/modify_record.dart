@@ -170,8 +170,23 @@ class _ModifyRecord extends State<ModifyRecord>{
         actions: widget.isEmpty == true
         ? <Widget>[
           IconButton(
+            onPressed: (){
+              if(_controller1.text != '' || _controller2.text != '' || _controller3.text != '' || _controller4.text != '' || _controller5.text != '' || (_selections[0] == true || _selections[1] == true)){
+                setState(() {
+                  showDialog(
+                    context: context,
+                    builder: (context) => PromptMessage(header: "Prompt" , text: "Are you sure you want to discard these changes?"), 
+                  );
+                }); 
+              }else{
+                Navigator.of(context).pop(false);
+              }
+            },
+            icon: Icon(Icons.delete)
+          ),
+          IconButton(
             onPressed: ()async{
-              if(_formKey.currentState.validate() == true && (_selections[0] == true || _selections[1] == true)){
+              if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
                 createRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash);
               }
               else{
@@ -184,14 +199,6 @@ class _ModifyRecord extends State<ModifyRecord>{
               }
             },
             icon: Icon(Icons.check),
-          ),
-          IconButton(
-            onPressed: (){
-              setState(() {
-                Navigator.of(context).pop(true);
-              });
-            },
-            icon: Icon(Icons.delete)
           ),
         ]
         : <Widget>[
@@ -208,7 +215,7 @@ class _ModifyRecord extends State<ModifyRecord>{
           ),
           IconButton(
             onPressed: ()async{
-              if(_formKey.currentState.validate() == true && (_selections[0] == true || _selections[1] == true)){
+              if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
                 updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
               }
               else{

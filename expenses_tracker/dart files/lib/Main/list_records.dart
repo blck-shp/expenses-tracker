@@ -77,6 +77,7 @@ class _ListRecords extends State<ListRecords>{
         ? TextFormField(
           style: TextStyle(
             color: Color(0xffffffff),
+            decoration: TextDecoration.none,
           ),
           cursorColor: Color(0xffffffff),
           controller: _controller,
@@ -86,6 +87,8 @@ class _ListRecords extends State<ListRecords>{
             });
           },
           decoration: InputDecoration(
+            border: InputBorder.none,
+            focusedBorder: InputBorder.none,
             prefixIcon: IconButton(
               onPressed: (){},
               icon: Icon(Icons.search, color: Color(0xffffffff)),

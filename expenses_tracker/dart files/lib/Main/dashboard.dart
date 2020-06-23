@@ -174,17 +174,22 @@ class _Dashboard extends State<Dashboard>{
                                 child: Container(
                                   width: displayWidth(context) * .90,
                                   child: ListView.separated(
-                                    physics: const NeverScrollableScrollPhysics(),
+                                    // physics: const NeverScrollableScrollPhysics(),
                                     padding: EdgeInsets.zero,
-                                    itemCount: snapshot.data.pagination.count >= 2 ? 2 : 1,
+                                    itemCount: snapshot.data.pagination.count >= 5 ? 5 : snapshot.data.pagination.count,
                                     itemBuilder: (BuildContext context , int index){
                                       String date = snapshot.data.records[index].date;
                                       String dateWithT = date.substring(0, 10);
-                                      return ListTile(
-                                        leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[index + 2]}')),
-                                        title: Text('P ' + '${snapshot.data.records[index].amount}' + '0'),
-                                        subtitle: Text('${snapshot.data.records[index].category.name}' + ' — ' + '${snapshot.data.records[index].notes}' , style: TextStyle(fontSize: 12.0),),
-                                        trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0),),
+                                      return GestureDetector(
+                                        onTap: (){
+                                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => ListRecords(hash: hash,)));
+                                        },
+                                        child: ListTile(
+                                          leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[snapshot.data.records[index].category.id - 1]}')),
+                                          title: Text('P ' + '${snapshot.data.records[index].amount}' + '0'),
+                                          subtitle: Text('${snapshot.data.records[index].category.name}' + ' — ' + '${snapshot.data.records[index].notes}' , style: TextStyle(fontSize: 12.0),),
+                                          trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0),),
+                                        ),
                                       );
                                     }, 
                                     separatorBuilder: (BuildContext context , int index) => const Divider(), 

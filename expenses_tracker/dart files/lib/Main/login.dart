@@ -200,7 +200,7 @@ class _Login extends State<Login>{
                             if(_controller1.text == '' || _controller2.text == ''){
                               showDialog(
                                 context: context,
-                                builder: (_) => ErrorMessage(header: "Error" , text: "Passwords don't match. Please try again."),   
+                                builder: (_) => ErrorMessage(header: "Error" , text: "Please input the credentials."),   
                               );
                             }else{
                               loginAccount(_controller1.text , _controller2.text);
