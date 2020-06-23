@@ -3,7 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'dashboard.dart';
 import 'list_records.dart';
-import 'main.dart';
+import '../main.dart';
 import 'records.dart';
 import 'package:date_format/date_format.dart';
 import 'dart:convert';
@@ -424,7 +424,6 @@ class _ModifyRecord extends State<ModifyRecord>{
                                                 use24hFormat: true,
                                                 initialDateTime: _date,
                                                 onDateTimeChanged: (date){
-                                                  print(date);
                                                   setState(() {
                                                     _date = date;
                                                   });
@@ -525,7 +524,6 @@ class _ModifyRecord extends State<ModifyRecord>{
                                                 use24hFormat: true,
                                                 initialDateTime: _dateTime,
                                                 onDateTimeChanged: (dateTime){
-                                                  print(dateTime);
                                                   setState(() {
                                                     _dateTime = dateTime;
                                                   });

@@ -5,7 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dashboard.dart';
 import 'modify_record.dart';
-import 'main.dart';
+import '../main.dart';
 
 class ListRecords extends StatefulWidget{
   final String hash;

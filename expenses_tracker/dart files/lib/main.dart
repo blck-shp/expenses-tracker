@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:expenses_tracker/Extras/extras.dart';
-import 'registration.dart';
-import 'login.dart';
+import 'Main/registration.dart';
+import 'Main/login.dart';
 
 void main() => runApp(
   MaterialApp(

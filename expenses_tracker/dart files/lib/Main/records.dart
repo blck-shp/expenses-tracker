@@ -3,7 +3,7 @@ import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dashboard.dart';
-import 'main.dart';
+import '../main.dart';
 
 
 class Records extends StatefulWidget{

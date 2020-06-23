@@ -5,7 +5,7 @@ import 'package:expenses_tracker/Extras/sizes.dart';
 import 'package:expenses_tracker/Main/modify_record.dart';
 import 'package:flutter/material.dart';
 import 'list_records.dart';
-import 'main.dart';
+import '../main.dart';
 import 'package:http/http.dart' as http;
 import 'package:charts_flutter/flutter.dart' as charts;
 
@@ -73,7 +73,6 @@ class _Dashboard extends State<Dashboard>{
 
   @override
   Widget build(BuildContext context){
-    print('The value of hash is in dashboard is $hash');
     return Scaffold(
       backgroundColor: Color(0xffeeeeee),
       resizeToAvoidBottomInset: false,
@@ -125,7 +124,6 @@ class _Dashboard extends State<Dashboard>{
       body: FutureBuilder<RecordsCategory>(
         future: getRecords(hash),
         builder: (context , snapshot){
-          print('The snapshot is ${snapshot.data}');
           if(snapshot.hasData){
             if(snapshot.data.pagination.count == 0){
               return EmptyDashboard(hash: hash,);
