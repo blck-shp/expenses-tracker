@@ -131,6 +131,7 @@ class _Dashboard extends State<Dashboard>{
               return Column(
                 children: <Widget>[
                   Expanded(
+                    flex: 2,
                     child: Container(
                       child: Card(
                         child: Container(
@@ -151,7 +152,7 @@ class _Dashboard extends State<Dashboard>{
                     ),
                   ),
                   Expanded(
-                    flex: 2,
+                    flex: 4,
                     child: Container(
                       child: Card(
                         child: Container(
@@ -170,11 +171,12 @@ class _Dashboard extends State<Dashboard>{
                                 ),
                               ),
                               Expanded(
-                                flex: 3,
+                                flex: 5,
                                 child: Container(
                                   width: displayWidth(context) * .90,
                                   child: ListView.separated(
-                                    // physics: const NeverScrollableScrollPhysics(),
+                                    shrinkWrap: true,
+                                    physics: const NeverScrollableScrollPhysics(),
                                     padding: EdgeInsets.zero,
                                     itemCount: snapshot.data.pagination.count >= 5 ? 5 : snapshot.data.pagination.count,
                                     itemBuilder: (BuildContext context , int index){
@@ -184,15 +186,18 @@ class _Dashboard extends State<Dashboard>{
                                         onTap: (){
                                           Navigator.of(context).push(MaterialPageRoute(builder: (_) => ListRecords(hash: hash,)));
                                         },
-                                        child: ListTile(
-                                          leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[snapshot.data.records[index].category.id - 1]}')),
-                                          title: Text('P ' + '${snapshot.data.records[index].amount}' + '0'),
-                                          subtitle: Text('${snapshot.data.records[index].category.name}' + ' — ' + '${snapshot.data.records[index].notes}' , style: TextStyle(fontSize: 12.0),),
-                                          trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0),),
+                                        child: Container(
+                                          height: displayHeight(context) * .05,
+                                          child: ListTile(
+                                            leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[snapshot.data.records[index].category.id - 1]}')),
+                                            title: Text('P ' + '${snapshot.data.records[index].amount}' + '0'),
+                                            subtitle: Text('${snapshot.data.records[index].category.name}' + ' — ' + '${snapshot.data.records[index].notes}' , style: TextStyle(fontSize: 12.0),),
+                                            trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0),),
+                                          ),
                                         ),
                                       );
                                     }, 
-                                    separatorBuilder: (BuildContext context , int index) => const Divider(), 
+                                    separatorBuilder: (BuildContext context , int index) => const Divider(color: Colors.transparent,), 
                                   ),
                                 ),
                               ),

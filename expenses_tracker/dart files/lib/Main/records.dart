@@ -2,64 +2,43 @@ import 'dart:convert';
 import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'dashboard.dart';
-import '../main.dart';
-
 
 class Records extends StatefulWidget{
   final String hash;
-  Records({this.hash});
+  final int listCategory;
+
+  Records({this.hash, this.listCategory});
 
   @override
-  _Records createState() => _Records(hash: hash);
+  _Records createState() => _Records(hash: hash, listCategory: listCategory);
 }
 
 class _Records extends State<Records>{
 
   final String hash;
-  _Records({this.hash});
+  int listCategory;
 
+  _Records({this.hash, this.listCategory});
 
   @override
   Widget build(BuildContext context){
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
-        title: Text("Records"),
+        leading: Builder(
+          builder: (BuildContext context){
+            return IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: (){
+                Navigator.of(context).pop(false);
+              },
+            );
+          },
+        ),
+        title: Text("Categories"),
         backgroundColor: Color(0xff246c55),
         centerTitle: true,
-      ),
-      drawer: Drawer(
-        child: Container(
-          color: Color(0xff246c55),
-          child: Column(
-            children: <Widget>[
-              Expanded(
-                flex: 2,
-                child: Container(),
-              ),
-              Expanded(
-                child: Column(
-                  children: <Widget>[
-                    Expanded(
-                      child: IconLink(text: "HOME" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Dashboard(hash: hash,)),
-                    ),
-                    Expanded(
-                      child: IconLink(text: "RECORDS" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Records(hash: hash,)),
-                    ),
-                    Expanded(
-                      child: IconLink(text: "LOGOUT" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Onboarding()),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Container(),
-              ),
-            ],
-          ),
-        ),
       ),
       body: FutureBuilder<CategoryList>(
         future: getList(),
@@ -70,28 +49,18 @@ class _Records extends State<Records>{
             }
             return ListView.separated(
               itemBuilder: (_, index){
-                return Dismissible(
-                  key: ValueKey(snapshot.data.categories[index].id),
-                  direction: DismissDirection.startToEnd,
-                  onDismissed: (direction){
-                  },
-                  confirmDismiss: (direction) async{
-                    final result = await showDialog(
-                      context: context,
-                      builder: (_) => DeleteRecord(),
-                    );
-                    return result;
-                  },
-                  background: Container(
-                    color: Colors.red,
-                    padding: EdgeInsets.only(left: 10.0),
-                    child: Align(child: Icon(Icons.delete, color: Color(0xffffffff)) , alignment: Alignment.centerLeft,)
-                  ),
+                return Container(
+                  color: index == listCategory ? Color(0xffeeeeee) : Colors.white,
                   child: ListTile(
                     leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${snapshot.data.categories[index].icon}')),
                     title: Text(snapshot.data.categories[index].name),
                     onTap: (){
-                      Navigator.pop(context, ['${snapshot.data.categories[index].name}' , snapshot.data.categories[index].id]);
+                      // setState(() {
+                      //   name = snapshot.data.categories[index].name;
+                      //   id = snapshot.data.categories[index].id;
+                      //   pos = index;
+                      // });
+                      Navigator.pop(context, ['${snapshot.data.categories[index].name}' , snapshot.data.categories[index].id, index]);
                     },
                     onLongPress: (){
                       showDialog(

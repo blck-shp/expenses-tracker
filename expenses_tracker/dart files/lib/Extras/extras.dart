@@ -1,3 +1,4 @@
+import 'package:expenses_tracker/Main/list_records.dart';
 import 'package:flutter/material.dart';
 import 'sizes.dart';
 
@@ -169,6 +170,37 @@ class PromptMessage extends StatelessWidget{
           onPressed: (){
             Navigator.pop(context);
             Navigator.pop(context);
+          },
+        ),
+      ],
+    );
+  }
+}
+
+class DeleteMessage extends StatelessWidget{
+
+  final String header;
+  final String text;
+  final String hash;
+
+  DeleteMessage({this.header , this.text, this.hash});
+
+  @override
+  Widget build(BuildContext context){
+    return AlertDialog(
+      title: Text(header),
+      content: Text(text),
+      actions: <Widget>[
+        FlatButton(
+          child: Text("NO"),
+          onPressed: (){
+            Navigator.pop(context);
+          },
+        ),
+        FlatButton(
+          child: Text("YES"),
+          onPressed: (){
+            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ListRecords(hash: hash)));
           },
         ),
       ],

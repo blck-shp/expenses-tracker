@@ -9,6 +9,7 @@ import '../main.dart';
 
 class ListRecords extends StatefulWidget{
   final String hash;
+
   ListRecords({this.hash});
 
   @override
@@ -21,12 +22,18 @@ class _ListRecords extends State<ListRecords>{
 
   _ListRecords({this.hash});
 
-  bool isLoading = false;
   bool _searching = false;
   TextEditingController _controller = new TextEditingController();
   String searchValue = '';
+
   List<RecordsName> items = [];
+  List<RecordsName> items2 = [];
+  
   int count = 1;
+  int count2 = 1;
+
+  bool isLoading = false;
+  bool isLoading2 = false;
 
     List<String> icons = [
     "/images/ic_food_drinks.png",
@@ -59,15 +66,56 @@ class _ListRecords extends State<ListRecords>{
     });
   }
 
+  Future searchRecords(String hash, String search, int count) async{
+    final response = await http.get('http://expenses.koda.ws/api/v1/records?q=$search&page=$count',
+      headers: {
+        HttpHeaders.authorizationHeader: hash,
+      },
+    );
+
+    setState(() {
+      var val = postFromJsonRecords(response.body);
+
+      if(items2.length <= val.pagination.count){
+        if(val.pagination.pages >= count){
+          items2.addAll(val.records);
+        }
+        
+      }
+      
+      isLoading2 = false;
+    });
+  } 
+
   @override
-    void initState(){
-    super.initState();
-    _getListRecords(hash, count);
-    count = 2;
+  void dispose(){
+    super.dispose();
   }
 
   @override
+    void initState(){
+
+    super.initState();
+
+    if(searchValue == ''){
+      _getListRecords(hash, count);
+    }
+    
+    count = 2;
+    count2 = 0;
+  }
+
+
+  @override
   Widget build(BuildContext context){
+
+    if(searchValue != ''){
+      setState(() {
+        count2++;
+        searchRecords(hash, searchValue, count2);
+      });
+    }
+
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -83,8 +131,10 @@ class _ListRecords extends State<ListRecords>{
           controller: _controller,
           onFieldSubmitted: (value){
             setState(() {
-              searchValue = value;  
+              searchValue = value;
+              
             });
+
           },
           decoration: InputDecoration(
             border: InputBorder.none,
@@ -114,6 +164,9 @@ class _ListRecords extends State<ListRecords>{
             onPressed: (){
               setState(() {
                 searchValue = '';
+                _controller.text = '';
+                items2 = [];
+                count2 = 0;
                 _searching = false;
               });
             },
@@ -161,8 +214,110 @@ class _ListRecords extends State<ListRecords>{
         backgroundColor: Color(0xff246c55),
         child: Icon(Icons.add),
       ),
-      body: searchValue == ''
+
+      body: searchValue != ''
+
       ? Column(
+        children: <Widget>[
+          Expanded(
+            child: NotificationListener<ScrollNotification>(
+              onNotification: (ScrollNotification scrollInfo){
+                if(!isLoading2 && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent){
+                  searchRecords(hash, searchValue, count2);  
+                  setState(() {
+                      
+                    isLoading2 = true;
+                    count2 = count2 + 1;  
+                  }); 
+                }
+                return isLoading2;
+              },
+              child: ListView.separated(
+                itemCount: items2.length,
+                separatorBuilder: (_, __) => Divider(height: 0),
+                itemBuilder: (_, index){
+
+                  String date = items2[index].date;
+                  String dateWithT = date.substring(0, 10);
+
+                  return Dismissible(
+                    key: ValueKey(items2[index].id),
+                    direction: DismissDirection.startToEnd,
+                    onDismissed: (direction){
+                      setState(() {
+                        items2.removeAt(index);
+                      });
+                    },
+                    confirmDismiss: (direction) async{
+                      final result = await showDialog(
+                        context: context,
+                        builder: (_) => DeleteRecord(),
+                      );
+                      if(result == true){
+                        deleteRecord(hash, items2[index].id);
+                      }
+                      return result;
+                    },
+                    background: Container(
+                      color: Colors.red,
+                      padding: EdgeInsets.only(left: 10.0),
+                      child: Align(child: Icon(Icons.delete, color: Color(0xffffffff)) , alignment: Alignment.centerLeft,)
+                    ),
+                    
+                    child: ListTile(
+                      leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[items2[index].category.id - 1]}')),
+                      title: Text('P' + '${items2[index].amount}' + '0'),
+                      subtitle: Text('${items2[index].category.name}' + ' — ' + '${items2[index].notes}'),
+                      trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0,),),
+
+                      onTap: (){
+                        String notes = items2[index].notes;
+                        String amount = items2[index].amount.toString();
+                        
+                        String date = items2[index].date.substring(0, 10);
+                        DateTime finalDate = DateTime.parse(date);
+
+                        String time = items2[index].date;
+                        DateTime finalTime = DateTime.parse(time);
+
+                        String categoryName = items2[index].category.name;
+
+                        int recordType = items2[index].recordType;
+                        int categoryId = items2[index].category.id;
+
+                        int id = items2[index].id;
+
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id, listCategory: categoryId - 1,))); 
+                      },
+
+                      onLongPress: ()async{
+                        final result = await showDialog(
+                          context: context,
+                          builder: (_) => DeleteRecord(),
+                        );
+                        if(result == true){
+                          deleteRecord(hash, items2[index].id);
+                          setState(() {
+                          });
+                        }
+                      },
+                    ),
+                  );
+                }, 
+              ),
+            ),
+          ),
+          Container(
+            height: isLoading2 ? 50.0 : 0,
+            color: Colors.transparent,
+            child: Center(
+              child: new CircularProgressIndicator(),
+            ),
+          ),
+        ],
+      )
+
+      : Column(
         children: <Widget>[
           Expanded(
             child: NotificationListener<ScrollNotification>(
@@ -232,7 +387,7 @@ class _ListRecords extends State<ListRecords>{
 
                         int id = items[index].id;
                         
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id,))); 
+                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id, listCategory: categoryId - 1,))); 
                       },
 
                       onLongPress: ()async{
@@ -261,92 +416,6 @@ class _ListRecords extends State<ListRecords>{
             ),
           ),
         ],
-      )
-      : FutureBuilder<ListRecordsCategory>(
-        future: searchRecords(hash, searchValue),
-        builder: (context, snapshot){
-          if(snapshot.connectionState == ConnectionState.done){
-            if(snapshot.hasError){
-              return Center(child: Text("Error"));
-            }
-            return ListView.separated(
-              addAutomaticKeepAlives: true,
-              itemBuilder: (_, index){
-
-                String date = snapshot.data.records[index].date;
-                String dateWithT = date.substring(0, 10);
-
-                return Dismissible(
-                  key: ValueKey(snapshot.data.records[index].id),
-                  direction: DismissDirection.startToEnd,
-                  onDismissed: (direction){
-                    setState(() {
-                      items.removeAt(index);
-                    });
-                  },
-                  confirmDismiss: (direction) async{
-                    final result = await showDialog(
-                      context: context,
-                      builder: (_) => DeleteRecord(),
-                    );
-                    if(result == true){
-                      deleteRecord(hash, snapshot.data.records[index].id);
-                    }
-                    return result;
-                  },
-                  background: Container(
-                    color: Colors.red,
-                    padding: EdgeInsets.only(left: 10.0),
-                    child: Align(child: Icon(Icons.delete, color: Color(0xffffffff)) , alignment: Alignment.centerLeft,)
-                  ),
-                  
-                  child: ListTile(
-                    leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[snapshot.data.records[index].category.id - 1]}')),
-                    title: Text('P' + '${snapshot.data.records[index].amount}' + '0'),
-                    subtitle: Text('${snapshot.data.records[index].category.name}' + ' — ' + '${snapshot.data.records[index].notes}'),
-                    trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0,),),
-
-                    onTap: (){
-                      String notes = snapshot.data.records[index].notes;
-                      String amount = snapshot.data.records[index].amount.toString();
-                      
-                      String date = snapshot.data.records[index].date.substring(0, 10);
-                      DateTime finalDate = DateTime.parse(date);
-
-                      String time = snapshot.data.records[index].date;
-                      DateTime finalTime = DateTime.parse(time);
-
-                      String categoryName = snapshot.data.records[index].category.name;
-
-                      int recordType = snapshot.data.records[index].recordType;
-                      int categoryId = snapshot.data.records[index].category.id;
-
-                      int id = snapshot.data.records[index].id;
-
-                      Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id))); 
-                    },
-
-                    onLongPress: ()async{
-                      final result = await showDialog(
-                        context: context,
-                        builder: (_) => DeleteRecord(),
-                      );
-                      if(result == true){
-                        deleteRecord(hash, snapshot.data.records[index].id);
-                        setState(() {
-                        });
-                      }
-                    },
-                  ),
-                );
-              }, 
-              separatorBuilder: (_, __) => Divider(height: 0),
-              itemCount: snapshot.data.pagination.count,
-            );
-          }else{
-            return Center(child: CircularProgressIndicator());
-          }
-        }
       ),
     );
   }
@@ -373,15 +442,6 @@ Future<String> deleteRecord(String hash, int id) async{
     throw Exception('Failed to update');
   }
 
-}
-
-Future<ListRecordsCategory> searchRecords(String hash, String search) async{
-  final response = await http.get('http://expenses.koda.ws/api/v1/records?q=$search',
-    headers: {
-      HttpHeaders.authorizationHeader: hash,
-    },
-  );
-  return postFromJsonRecords(response.body);
 }
 
 
