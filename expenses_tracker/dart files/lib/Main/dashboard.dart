@@ -8,6 +8,8 @@ import 'list_records.dart';
 import '../main.dart';
 import 'package:http/http.dart' as http;
 import 'package:charts_flutter/flutter.dart' as charts;
+import 'package:date_format/date_format.dart';
+import 'package:intl/intl.dart';
 
 
 class Overview{
@@ -35,26 +37,57 @@ class Dashboard extends StatefulWidget{
 
 class _Dashboard extends State<Dashboard>{
 
-  List<String> icons = [
-    "/images/ic_food_drinks.png",
-    "/images/ic_groceries.png",
-    "/images/ic_clothes.png",
-    "/images/ic_electronics.png",
-    "/images/ic_healthcare.png",
-    "/images/ic_gifts.png",
-    "/images/ic_transportation.png",
-     "/images/ic_education.png",
-     "/images/ic_entertainment.png",
-     "/images/ic_utilities.png",
-     "/images/ic_rent.png",
-     "/images/ic_household.png",
-     "/images/ic_investments.png",
-     "/images/ic_other.png",
-  ];
-
   final String hash;
 
   _Dashboard({this.hash});
+
+  List<String> _icons = [];
+
+  @override
+  void dispose(){
+    super.dispose();
+  }
+
+  @override
+  void initState(){
+
+    super.initState();
+    
+    // setState((){
+    //   // print('The value of _icons is $_icons');
+    //   if(_icons == null){
+    //     getList();
+    //   }
+    //   // _icons = [];
+    // });
+    getList();
+
+  }
+
+
+  Future getList() async{
+    final response = await http.get('http://expenses.koda.ws/api/v1/categories');
+
+    _categoryName(Map<String, dynamic> parsedJson){
+      setState(() {
+        _icons.add(parsedJson['icon']);
+      });
+    }
+
+    _category(Map<String, dynamic> parsedJson){
+      var list = parsedJson['categories'] as List;
+      list.map((e) => _categoryName(e)).toList();
+    }
+
+    if(response.statusCode == 200){
+      _category(json.decode(response.body));
+    }else{
+      throw Exception('Failed to get the icons');
+    }
+
+    
+
+  }
 
   Future<Overview> getOverview(String hash) async{
     final response = await http.get(
@@ -73,6 +106,14 @@ class _Dashboard extends State<Dashboard>{
 
   @override
   Widget build(BuildContext context){
+    // print('asdfsdafsadfs is $_icons');
+    // if(_icons == []){
+    //   print('zxcvzxcvcxzvlkjasdflkjasd hnnnggg');
+    //   setState(() {
+        
+    //     getList();
+    //   });
+    // }
     return Scaffold(
       backgroundColor: Color(0xffeeeeee),
       resizeToAvoidBottomInset: false,
@@ -128,6 +169,7 @@ class _Dashboard extends State<Dashboard>{
             if(snapshot.data.pagination.count == 0){
               return EmptyDashboard(hash: hash,);
             }else{
+              getList();
               return Column(
                 children: <Widget>[
                   Expanded(
@@ -135,6 +177,7 @@ class _Dashboard extends State<Dashboard>{
                     child: Container(
                       child: Card(
                         child: Container(
+                          padding: EdgeInsets.only(left: 10.0, right: 10.0),
                           width: displayWidth(context) * .90,
                           child: FutureBuilder<Overview>(
                             future: getOverview(hash),
@@ -171,33 +214,94 @@ class _Dashboard extends State<Dashboard>{
                                 ),
                               ),
                               Expanded(
-                                flex: 5,
+                                flex: 8,
                                 child: Container(
                                   width: displayWidth(context) * .90,
                                   child: ListView.separated(
-                                    shrinkWrap: true,
                                     physics: const NeverScrollableScrollPhysics(),
-                                    padding: EdgeInsets.zero,
                                     itemCount: snapshot.data.pagination.count >= 5 ? 5 : snapshot.data.pagination.count,
                                     itemBuilder: (BuildContext context , int index){
-                                      String date = snapshot.data.records[index].date;
-                                      String dateWithT = date.substring(0, 10);
+
+
+                                      String converted = snapshot.data.records[index].date;
+                                      DateTime date = DateTime.parse(converted.substring(0, 10));
+                                      String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
+
+                                      var amountConverter = NumberFormat('#,##0.00', 'en_US');
+
+                                      String icon = _icons[snapshot.data.records[index].category.id - 1];
+
                                       return GestureDetector(
                                         onTap: (){
                                           Navigator.of(context).push(MaterialPageRoute(builder: (_) => ListRecords(hash: hash,)));
                                         },
                                         child: Container(
-                                          height: displayHeight(context) * .05,
+
+                                          height: displayHeight(context) * (snapshot.data.pagination.count >= 5 ? (5/100) : (snapshot.data.pagination.count/100)),
                                           child: ListTile(
-                                            leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[snapshot.data.records[index].category.id - 1]}')),
-                                            title: Text('P ' + '${snapshot.data.records[index].amount}' + '0'),
-                                            subtitle: Text('${snapshot.data.records[index].category.name}' + ' — ' + '${snapshot.data.records[index].notes}' , style: TextStyle(fontSize: 12.0),),
-                                            trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0),),
+                                            leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'$icon')),
+                                            title: Row(
+                                              children: <Widget>[
+                                                Expanded(
+                                                  child:  Text(
+                                                    'P' + '${amountConverter.format(snapshot.data.records[index].amount)}',
+                                                      style: TextStyle(
+                                                        fontWeight: FontWeight.bold,
+                                                        fontSize: 18.0,
+                                                        fontFamily: 'Nunito',
+                                                        color: snapshot.data.records[index].recordType == 0 ? Colors.green : Colors.red,
+                                                    ),
+                                                  ),
+                                                ),
+                                                Expanded(
+                                                  child: Container(
+                                                    margin: EdgeInsets.only(bottom: 20.0),
+                                                    child: Text('$dateWithT',
+                                                    textAlign: TextAlign.right,
+                                                      style: TextStyle(
+                                                        fontSize: 12.0,
+                                                        fontFamily: 'Nunito',
+                                                        color: Color(0xff888888),
+                                                        letterSpacing: 0.5,
+                                                      ),
+                                                    ),
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                            subtitle: RichText(
+                                              text: TextSpan(
+                                                children: <TextSpan>[
+                                                  TextSpan(
+                                                    text: '${snapshot.data.records[index].category.name}',
+                                                    style: TextStyle(
+                                                      color: Color(0xffbbbbbb),
+                                                      fontFamily: 'Nunito',
+                                                    ),
+                                                  ),
+                                                  TextSpan(
+                                                    text: ' — ',
+                                                    style: TextStyle(
+                                                      color: Color(0xffaaaaaa),
+                                                      fontFamily: 'Nunito',
+                                                    ),
+                                                  ),
+                                                  TextSpan(
+                                                    text: '${snapshot.data.records[index].notes}',
+                                                    style: TextStyle(
+                                                      color: Color(0xff888888),
+                                                      fontFamily: 'Nunito',
+                                                      fontStyle: FontStyle.italic,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
+                                            ),
                                           ),
                                         ),
                                       );
                                     }, 
-                                    separatorBuilder: (BuildContext context , int index) => const Divider(color: Colors.transparent,), 
+                                    separatorBuilder: (BuildContext context , int index) => const Divider(color: Colors.transparent, ), 
                                   ),
                                 ),
                               ),
@@ -351,10 +455,12 @@ class _ChartsOverview extends State<ChartsOverview>{
         charts.ChartTitle(
           "OVERVIEW",
           maxWidthStrategy: charts.MaxWidthStrategy.truncate,
-          outerPadding: 15,
+          outerPadding: 10,
           innerPadding: 10,
           titleOutsideJustification: charts.OutsideJustification.start,
         ),
+        
+        
       ],
 
     );

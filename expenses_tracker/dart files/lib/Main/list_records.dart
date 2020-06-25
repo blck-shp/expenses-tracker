@@ -6,6 +6,8 @@ import 'package:http/http.dart' as http;
 import 'dashboard.dart';
 import 'modify_record.dart';
 import '../main.dart';
+import 'package:date_format/date_format.dart';
+import 'package:intl/intl.dart';
 
 class ListRecords extends StatefulWidget{
   final String hash;
@@ -35,22 +37,76 @@ class _ListRecords extends State<ListRecords>{
   bool isLoading = false;
   bool isLoading2 = false;
 
-    List<String> icons = [
-    "/images/ic_food_drinks.png",
-    "/images/ic_groceries.png",
-    "/images/ic_clothes.png",
-    "/images/ic_electronics.png",
-    "/images/ic_healthcare.png",
-    "/images/ic_gifts.png",
-    "/images/ic_transportation.png",
-    "/images/ic_education.png",
-    "/images/ic_entertainment.png",
-    "/images/ic_utilities.png",
-    "/images/ic_rent.png",
-    "/images/ic_household.png",
-    "/images/ic_investments.png",
-    "/images/ic_other.png",
-  ];
+  //   List<String> icons = [
+  //   "/images/ic_food_drinks.png",
+  //   "/images/ic_groceries.png",
+  //   "/images/ic_clothes.png",
+  //   "/images/ic_electronics.png",
+  //   "/images/ic_healthcare.png",
+  //   "/images/ic_gifts.png",
+  //   "/images/ic_transportation.png",
+  //   "/images/ic_education.png",
+  //   "/images/ic_entertainment.png",
+  //   "/images/ic_utilities.png",
+  //   "/images/ic_rent.png",
+  //   "/images/ic_household.png",
+  //   "/images/ic_investments.png",
+  //   "/images/ic_other.png",
+  // ];
+
+  List<String> _icons = [];
+
+
+  @override
+  void dispose(){
+    super.dispose();
+  }
+
+  @override
+    void initState(){
+
+    super.initState();
+
+    // setState(() {
+    //   if(_icons == null){
+    //     getList();
+    //   }
+    // });
+
+    getList();
+
+    if(searchValue == ''){
+      _getListRecords(hash, count);
+    }
+
+    
+    count = 2;
+    count2 = 0;
+  }
+
+
+  Future getList() async{
+    final response = await http.get('http://expenses.koda.ws/api/v1/categories');
+
+    _categoryName(Map<String, dynamic> parsedJson){
+      setState(() {
+        _icons.add(parsedJson['icon']);
+      });
+    }
+
+    _category(Map<String, dynamic> parsedJson){
+      var list = parsedJson['categories'] as List;
+      list.map((e) => _categoryName(e)).toList();
+    }
+
+    // _category(json.decode(response.body));
+    if(response.statusCode == 200){
+      _category(json.decode(response.body));
+    }else{
+      throw Exception('Failed to get the icons');
+    }
+
+  }
 
   Future _getListRecords(String hash, int count) async{
     final response = await http.get('http://expenses.koda.ws/api/v1/records?page=$count',
@@ -87,32 +143,23 @@ class _ListRecords extends State<ListRecords>{
     });
   } 
 
-  @override
-  void dispose(){
-    super.dispose();
-  }
-
-  @override
-    void initState(){
-
-    super.initState();
-
-    if(searchValue == ''){
-      _getListRecords(hash, count);
-    }
-    
-    count = 2;
-    count2 = 0;
-  }
+  
 
 
   @override
   Widget build(BuildContext context){
-
+    print('asdfsdafsadfs is $_icons');
     if(searchValue != ''){
       setState(() {
         count2++;
         searchRecords(hash, searchValue, count2);
+      });
+    }
+
+    if(_icons == []){
+      print('Taka lang ug turok hngggg');
+      setState(() {
+        getList();
       });
     }
 
@@ -223,7 +270,8 @@ class _ListRecords extends State<ListRecords>{
             child: NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo){
                 if(!isLoading2 && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent){
-                  searchRecords(hash, searchValue, count2);  
+                  getList();
+                  searchRecords(hash, searchValue, count2);
                   setState(() {
                       
                     isLoading2 = true;
@@ -237,8 +285,13 @@ class _ListRecords extends State<ListRecords>{
                 separatorBuilder: (_, __) => Divider(height: 0),
                 itemBuilder: (_, index){
 
-                  String date = items2[index].date;
-                  String dateWithT = date.substring(0, 10);
+                  String converted = items2[index].date;
+                  DateTime date = DateTime.parse(converted.substring(0, 10));
+                  String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
+
+                  var amountConverter = NumberFormat('#,##0.00', 'en_US');
+
+                  String icon = _icons[items2[index].category.id - 1];
 
                   return Dismissible(
                     key: ValueKey(items2[index].id),
@@ -265,10 +318,65 @@ class _ListRecords extends State<ListRecords>{
                     ),
                     
                     child: ListTile(
-                      leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[items2[index].category.id - 1]}')),
-                      title: Text('P' + '${items2[index].amount}' + '0'),
-                      subtitle: Text('${items2[index].category.name}' + ' — ' + '${items2[index].notes}'),
-                      trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0,),),
+                      // _icons[items2[index].category.id - 1
+                      leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'$icon')),
+                      title: Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              'P' + '${amountConverter.format(items2[index].amount)}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18.0,
+                                  fontFamily: 'Nunito',
+                                  color: items2[index].recordType == 0 ? Colors.green : Colors.red,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              margin: EdgeInsets.only(bottom: 20.0),
+                              child: Text('$dateWithT',
+                              textAlign: TextAlign.right,
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  fontFamily: 'Nunito',
+                                  color: Color(0xff888888),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: RichText(
+                        text: TextSpan(
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: '${items2[index].category.name}',
+                              style: TextStyle(
+                                color: Color(0xffbbbbbb),
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' — ',
+                              style: TextStyle(
+                                color: Color(0xffaaaaaa),
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                            TextSpan(
+                              text: '${items2[index].notes}',
+                              style: TextStyle(
+                                color: Color(0xff888888),
+                                fontFamily: 'Nunito',
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
 
                       onTap: (){
                         String notes = items2[index].notes;
@@ -286,6 +394,8 @@ class _ListRecords extends State<ListRecords>{
                         int categoryId = items2[index].category.id;
 
                         int id = items2[index].id;
+
+                        _icons = [];
 
                         Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id, listCategory: categoryId - 1,))); 
                       },
@@ -323,6 +433,7 @@ class _ListRecords extends State<ListRecords>{
             child: NotificationListener<ScrollNotification>(
               onNotification: (ScrollNotification scrollInfo){
                 if(!isLoading && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent){
+                  getList();
                   _getListRecords(hash, count);
                   setState(() {
                     isLoading = true;
@@ -336,8 +447,13 @@ class _ListRecords extends State<ListRecords>{
                 separatorBuilder: (_, __) => Divider(height: 0),
                 itemBuilder: (context , index){
 
-                  String date = items[index].date;
-                  String dateWithT = date.substring(0, 10);
+                  String converted = items[index].date;
+                  DateTime date = DateTime.parse(converted.substring(0, 10));
+                  String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
+
+                  var amountConverter = NumberFormat('#,##0.00', 'en_US');
+
+                  String icon = _icons[items[index].category.id - 1];
 
                   return Dismissible(
                     key: ValueKey(items[index].id),
@@ -365,11 +481,64 @@ class _ListRecords extends State<ListRecords>{
                     ),
                   
                     child: ListTile(
-                      leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${icons[items[index].category.id - 1]}')),
-                      title: Text('P' + '${items[index].amount}' + '0'),
-                      subtitle: Text('${items[index].category.name}' + ' — ' + '${items[index].notes}'),
-                      trailing: Text('$dateWithT', style: TextStyle(fontSize: 12.0,),),
-
+                      leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'$icon')),
+                      title: Row(
+                        children: <Widget>[
+                          Expanded(
+                            child: Text(
+                              'P' + '${amountConverter.format(items[index].amount)}',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 18.0,
+                                  fontFamily: 'Nunito',
+                                  color: items[index].recordType == 0 ? Colors.green : Colors.red,
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              margin: EdgeInsets.only(bottom: 20.0),
+                              child: Text('$dateWithT',
+                              textAlign: TextAlign.right,
+                                style: TextStyle(
+                                  fontSize: 12.0,
+                                  fontFamily: 'Nunito',
+                                  color: Color(0xff888888),
+                                  letterSpacing: 0.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      subtitle: RichText(
+                        text: TextSpan(
+                          children: <TextSpan>[
+                            TextSpan(
+                              text: '${items[index].category.name}',
+                              style: TextStyle(
+                                color: Color(0xffbbbbbb),
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                            TextSpan(
+                              text: ' — ',
+                              style: TextStyle(
+                                color: Color(0xffaaaaaa),
+                                fontFamily: 'Nunito',
+                              ),
+                            ),
+                            TextSpan(
+                              text: '${items[index].notes}',
+                              style: TextStyle(
+                                color: Color(0xff888888),
+                                fontFamily: 'Nunito',
+                                fontStyle: FontStyle.italic,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                       onTap: (){
                         String notes = items[index].notes;
                         String amount = items[index].amount.toString();
@@ -386,6 +555,8 @@ class _ListRecords extends State<ListRecords>{
                         int categoryId = items[index].category.id;
 
                         int id = items[index].id;
+
+                        _icons = [];
                         
                         Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id, listCategory: categoryId - 1,))); 
                       },

@@ -2,9 +2,6 @@ import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/cupertino.dart';
 import 'dashboard.dart';
-// import 'list_records.dart';
-// import '../main.dart';
-// import 'list_records.dart';
 import 'records.dart';
 import 'package:date_format/date_format.dart';
 import 'dart:convert';
@@ -147,7 +144,8 @@ class _ModifyRecord extends State<ModifyRecord>{
     var id = json['id'];
     setState(() {
       if(id != null)
-        Navigator.of(context).pop(true);
+        // Navigator.of(context).pop(true);
+        // Navigator.pop(context);
         Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
     });
     return id;
@@ -157,17 +155,27 @@ class _ModifyRecord extends State<ModifyRecord>{
   @override
   void initState(){
   super.initState();
-  
-  if(recordType != null){
-    _recordType = recordType;
-    for(int i = 0; i < _selections.length; i++){
-      if(i == recordType){
-        _selections[i] = true;
-      }else{
-        _selections[i] = false;
-      }
-    }  
-  }
+
+    // if(isEmpty == true){
+    //   listCategory = 0;
+    //   _controller5.text = 'Food & Drinks';
+    // }else{
+    //   _controller5.text = categoryName;
+    //   listCategory = listCategory;
+    // }
+    
+    // if(recordType != null){
+    //   _recordType = recordType;
+    //   for(int i = 0; i < _selections.length; i++){
+    //     if(i == recordType){
+    //       _selections[i] = true;
+    //     }else{
+    //       _selections[i] = false;
+    //     }
+    //   }  
+    // }
+
+    // to be checked!
 
   }
 
@@ -187,11 +195,10 @@ class _ModifyRecord extends State<ModifyRecord>{
       _convertedTime = 'T' + formatDateTime(time).toString() + ':00.000Z';
       _controller4.text = formatDateTime(time).toString();
 
-      _controller5.text = categoryName;
-
       _categoryId = categoryId;
 
-      // listCategory = listCategory;
+
+      // _recordType = recordType;
 
 
       value1 = _controller1.text;
@@ -210,9 +217,7 @@ class _ModifyRecord extends State<ModifyRecord>{
       }
       _convertedTime = 'T' + formatDateTime(_dateTime).toString() + ':00.000Z';
       _controller4.text = formatDateTime(_dateTime).toString();
-
-      _controller5.text = 'Food & Drinks';
-      listCategory = 0;
+      
       _categoryId = 1;
 
     }
@@ -321,7 +326,8 @@ class _ModifyRecord extends State<ModifyRecord>{
                           selectedColor: Color(0xff90b4aa),
                           onPressed: (int index){
                             setState(() {
-                              _recordType = index;
+                              // _recordType = index;
+
                               for(int i = 0; i < _selections.length; i++){
                                 if(i == index){
                                   _selections[i] = true;
@@ -592,9 +598,14 @@ class _ModifyRecord extends State<ModifyRecord>{
                         onTap: () async{
                           final result = await Navigator.of(context).push(MaterialPageRoute(builder: (value) => Records(listCategory: listCategory,)));
                           
-                          if(result == false){
+                          // if(result == false){
 
-                          }else{
+                          // }else{
+                          //   _controller5.text = result[0].toString();
+                          //   _categoryId = result[1];
+                          //   listCategory = result[2];
+                          // }
+                          if(result == true){
                             _controller5.text = result[0].toString();
                             _categoryId = result[1];
                             listCategory = result[2];

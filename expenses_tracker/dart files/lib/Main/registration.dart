@@ -21,54 +21,69 @@ class _Registration extends State<Registration>{
   List numbers = [];
 
   Future<String> createAccount(String name , String email,  String password, String hash) async{
-  final http.Response response = await http.post('http://expenses.koda.ws/api/v1/sign_up',
-    headers: <String, String>{
-      'Content-Type': 'application/json; charset=UTF-8',
-      'Accept': 'application/json',
-      'Authorization': 'Bearer $hash',
-    },
-    body: jsonEncode(<String , String>{
-      'name': name,
-      'email': email,
-      'password': password
-    }),
-  );
+    final http.Response response = await http.post('http://expenses.koda.ws/api/v1/sign_up',
+      headers: <String, String>{
+        'Content-Type': 'application/json; charset=UTF-8',
+        'Accept': 'application/json',
+        'Authorization': 'Bearer $hash',
+      },
+      body: jsonEncode(<String , String>{
+        'name': name,
+        'email': email,
+        'password': password
+      }),
+    );
 
-  String value;
+    String value;
 
-  dynamic fromJsonMessage(Map<String, dynamic> json){
-    String hashValue = json['token'];
+    dynamic fromJsonMessage(Map<String, dynamic> json){
+      String hashValue = json['token'];
 
-    if(hashValue != null){
-      setState(() {
-        showDialog(
-          context: context,
-          builder: (context){
-            Future.delayed(Duration(seconds: 3), (){
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hashValue,)));
-            });
-            return ShowMessage(title: "Success" , content: "Successfullly registered! Processing account.");
-          }
-        );
-      });
+      if(hashValue != null){
+        setState(() {
+          showDialog(
+            context: context,
+            builder: (context){
+              Future.delayed(Duration(seconds: 3), (){
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hashValue,)));
+              });
+              return ShowMessage(title: "Success" , content: "Successfullly registered! Processing account.");
+            }
+          );
+        });
+      }
+
+      return hashValue;
     }
 
-    return hashValue;
+    if(response.statusCode == 200){
+      value = fromJsonMessage(json.decode(response.body));
+    }else if(response.statusCode == 400){
+      showDialog(
+        context: context,
+        builder: (_) => ErrorMessage(header: "Error" , text: "Email address has already been taken. Please try again."),                        
+      );     
+    }else{
+      throw Exception('Failed to register');
+    }
+    return value;
   }
 
-  if(response.statusCode == 200){
-    value = fromJsonMessage(json.decode(response.body));
-  }else if(response.statusCode == 400){
-    showDialog(
-      context: context,
-      builder: (_) => ErrorMessage(header: "Error" , text: "Email address has already been taken. Please try again."),                        
-    );     
-  }else{
-    throw Exception('Failed to register');
-  }
-  return value;
-}
+  // @override
+  // void initState(){
+  //   super.initState();
+  //   colorFocus1 = FocusNode();
+  //   colorFocus2 = FocusNode();
+  // }
 
+  // @override
+  // void dispose(){
+  //   colorFocus1.dispose();
+  //   colorFocus2.dispose();
+  //   super.dispose();
+  // }
+
+  
   @override
   Widget build(BuildContext context){
     return Scaffold(
@@ -110,19 +125,30 @@ class _Registration extends State<Registration>{
                         style: TextStyle(
                           fontSize: 28.0,
                           fontWeight: FontWeight.bold,
-                          color: Color(0xff90b4aa),
+                          color: Color(0xff009688),
                         ),
                       ),
                     ),
                     Expanded(
                       child: TextFormField(
+                        // onTap: (){
+                        //   if(colorFocus1.hasFocus){
+                        //     colorFocus1.unfocus();
+                        //   }else{
+                        //     colorFocus1.requestFocus();
+                        //   }
+                        // },
+                        // focusNode: colorFocus1,
                         controller: _controller1,
                         validator: (value){
                           if(value.isEmpty)
                             return null;
                           return null;
+                          
                         },
+                        
                         decoration: InputDecoration(
+                          
                           enabledBorder: UnderlineInputBorder(
                             borderSide: BorderSide(
                               color: Color(0xff555555),
@@ -140,15 +166,26 @@ class _Registration extends State<Registration>{
                               color: Color(0xff246c55),
                             ),                            
                           ),
+                          
                           labelText: "Name",
                           labelStyle: TextStyle(
                             color: Color(0xff555555),
+                            // color: colorFocus1.hasFocus ? Colors.blue : Colors.red,
+                            
                           ),
                         ),
                       ),
                     ),
                     Expanded(
                       child: TextFormField(
+                        // onTap: (){
+                        //   if(colorFocus2.hasFocus){
+                        //     colorFocus2.unfocus();
+                        //   }else{
+                        //     colorFocus2.requestFocus();
+                        //   }
+                        // },
+                        // focusNode: colorFocus2,
                         controller: _controller2,
                         validator: (value){
                           if(value.isEmpty)
@@ -177,6 +214,7 @@ class _Registration extends State<Registration>{
                           labelText: "Email",
                           labelStyle: TextStyle(
                             color: Color(0xff555555),
+                            // color: colorFocus2.hasFocus ? Colors.blue : Colors.red,
                           ),
                         ),
                       ),

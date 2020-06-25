@@ -54,3 +54,17 @@
 - [x] The delete icon in the Edit Record page should delete the record, not clear the changes.
 - [x] When editing a record, the user cannot change the record type from Income to Expense and vice versa.
 - [x] As much as possible this tiny listview should accommodate the entire height of the list, so it should show 5 items
+
+---
+
+### Issue # 2
+
+##### UI
+- [x] The chart overflows the container sometimes
+- [] The amount should be green if the record_type is income, red otherwise. Also, try to format the date in a more human-readable form, ie. "June 23, 2020". Please also use the category icons that are returned in the GET /api/v1/categories response. // Getting the api/v1/categories response is not done yet.
+- [] Time field formatting on the minutes portion needs to be zero-padded.
+
+##### Functionality
+- [] Navigation // Dashboard should be the root page so when you reach the end of the stack, pressing back shouldn't take you to the Login page. - This is not done yet.
+- []  Editing record from Dashboard // There are some issues on the implementation initialization.
+- [] More edit record shenanigans // There are still issues on editing a record,

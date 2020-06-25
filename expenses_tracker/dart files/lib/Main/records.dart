@@ -55,11 +55,6 @@ class _Records extends State<Records>{
                     leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${snapshot.data.categories[index].icon}')),
                     title: Text(snapshot.data.categories[index].name),
                     onTap: (){
-                      // setState(() {
-                      //   name = snapshot.data.categories[index].name;
-                      //   id = snapshot.data.categories[index].id;
-                      //   pos = index;
-                      // });
                       Navigator.pop(context, ['${snapshot.data.categories[index].name}' , snapshot.data.categories[index].id, index]);
                     },
                     onLongPress: (){
