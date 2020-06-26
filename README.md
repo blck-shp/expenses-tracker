@@ -57,14 +57,20 @@
 
 ---
 
-### Issue # 2
+### Issue # 2 [Updates]
 
 ##### UI
 - [x] The chart overflows the container sometimes
-- [] The amount should be green if the record_type is income, red otherwise. Also, try to format the date in a more human-readable form, ie. "June 23, 2020". Please also use the category icons that are returned in the GET /api/v1/categories response. // Getting the api/v1/categories response is not done yet.
-- [] Time field formatting on the minutes portion needs to be zero-padded.
+- [x] The amount should be green if the record_type is income, red otherwise. Also, try to format the date in a more human-readable form, ie. "June 23, 2020". Please also use the category icons that are returned in the GET /api/v1/categories response. 
+- [x] Time field formatting on the minutes portion needs to be zero-padded.
 
 ##### Functionality
-- [] Navigation // Dashboard should be the root page so when you reach the end of the stack, pressing back shouldn't take you to the Login page. - This is not done yet.
-- []  Editing record from Dashboard // There are some issues on the implementation initialization.
-- [] More edit record shenanigans // There are still issues on editing a record,
+- [x] Navigation // Dashboard should be the root page so when you reach the end of the stack, pressing back shouldn't take you to the Login page. - This is not done yet.
+- [x]  Editing record from Dashboard // There are some issues on the implementation initialization.
+- [x] More edit record shenanigans // There are still issues on editing a record,
+
+---
+
+### Additional info as of June 26, 2020.
+
+So far, all of the issues mentioned above were all fixed and have been tested along the way but the code needs to be refactored. The UI of this mini project has also been updated or modified especially in regards to the currency and the list tiles that are being displayed.

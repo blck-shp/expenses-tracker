@@ -41,51 +41,32 @@ class _Dashboard extends State<Dashboard>{
 
   _Dashboard({this.hash});
 
-  List<String> _icons = [];
-
   @override
   void dispose(){
     super.dispose();
   }
 
-  @override
-  void initState(){
-
-    super.initState();
-    
-    // setState((){
-    //   // print('The value of _icons is $_icons');
-    //   if(_icons == null){
-    //     getList();
-    //   }
-    //   // _icons = [];
-    // });
-    getList();
-
-  }
-
+  List<String> _icons = [];
 
   Future getList() async{
     final response = await http.get('http://expenses.koda.ws/api/v1/categories');
 
     _categoryName(Map<String, dynamic> parsedJson){
-      setState(() {
         _icons.add(parsedJson['icon']);
-      });
     }
 
     _category(Map<String, dynamic> parsedJson){
       var list = parsedJson['categories'] as List;
       list.map((e) => _categoryName(e)).toList();
+      
     }
 
     if(response.statusCode == 200){
       _category(json.decode(response.body));
+      return _icons;
     }else{
       throw Exception('Failed to get the icons');
     }
-
-    
 
   }
 
@@ -105,15 +86,7 @@ class _Dashboard extends State<Dashboard>{
   }
 
   @override
-  Widget build(BuildContext context){
-    // print('asdfsdafsadfs is $_icons');
-    // if(_icons == []){
-    //   print('zxcvzxcvcxzvlkjasdflkjasd hnnnggg');
-    //   setState(() {
-        
-    //     getList();
-    //   });
-    // }
+  Widget build(BuildContext context){   
     return Scaffold(
       backgroundColor: Color(0xffeeeeee),
       resizeToAvoidBottomInset: false,
@@ -162,186 +135,210 @@ class _Dashboard extends State<Dashboard>{
         backgroundColor: Color(0xff246c55),
         child: Icon(Icons.add),
       ),
-      body: FutureBuilder<RecordsCategory>(
-        future: getRecords(hash),
-        builder: (context , snapshot){
-          if(snapshot.hasData){
-            if(snapshot.data.pagination.count == 0){
-              return EmptyDashboard(hash: hash,);
-            }else{
-              getList();
-              return Column(
-                children: <Widget>[
-                  Expanded(
-                    flex: 2,
-                    child: Container(
-                      child: Card(
-                        child: Container(
-                          padding: EdgeInsets.only(left: 10.0, right: 10.0),
-                          width: displayWidth(context) * .90,
-                          child: FutureBuilder<Overview>(
-                            future: getOverview(hash),
-                            builder: (context , snapshot){
-                              if(snapshot.hasData){
-                                return ChartsOverview(income: snapshot.data.income, expenses: snapshot.data.expenses,);
-                              }else if(snapshot.hasError){
-                                return Center(child: Text("Error"));
-                              }
-                              return Center(child: CircularProgressIndicator());
-                            },
-                          )
-                        ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 4,
-                    child: Container(
-                      child: Card(
-                        child: Container(
-                          width: displayWidth(context) * .90,
-                          child: Column(
-                            children: <Widget>[
-                              Expanded(
-                                child: Container(
-                                  padding: EdgeInsets.only(left: 20.0),
-                                  alignment: Alignment.centerLeft,
-                                  child: Text('RECENT',
-                                    style: TextStyle(
-                                      fontSize: 18.0,
-                                    ),
-                                  ),
-                                ),
+      body: FutureBuilder(
+        future: getList(),
+        builder: (context , listIcons){
+          if(listIcons.hasData){
+            return FutureBuilder<RecordsCategory>(
+              future: getRecords(hash),
+              builder: (context , listRecords){
+                if(listRecords.hasData){
+                  if(listRecords.data.pagination.count != 0){       
+                    return Column(
+                      children: <Widget>[
+                        Expanded(
+                          flex: 1,
+                          child: Container(
+                            child: Card(
+                              child: Container(
+                                padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                                width: displayWidth(context) * .90,
+                                child: FutureBuilder<Overview>(
+                                  future: getOverview(hash),
+                                  builder: (context , listOverview){  
+                                    if(listOverview.hasData){
+                                      return ChartsOverview(income: listOverview.data.income, expenses: listOverview.data.expenses,);
+                                    }else if(listOverview.hasError){
+                                      return Center(child: Text("Error"));
+                                    }
+                                    return Center(child: CircularProgressIndicator());
+                                  },
+                                )
                               ),
-                              Expanded(
-                                flex: 8,
-                                child: Container(
-                                  width: displayWidth(context) * .90,
-                                  child: ListView.separated(
-                                    physics: const NeverScrollableScrollPhysics(),
-                                    itemCount: snapshot.data.pagination.count >= 5 ? 5 : snapshot.data.pagination.count,
-                                    itemBuilder: (BuildContext context , int index){
+                            ),
+                          ),
+                        ),
+                        Expanded(
+                          flex: 3,
+                          child: Container(
+                            child: Card(
+                              child: Container(
+                                width: displayWidth(context) * .90,
+                                child: Column(
+                                  children: <Widget>[
+                                    Expanded(
+                                      child: Container(
+                                        padding: EdgeInsets.only(left: 40.0),
+                                        alignment: Alignment.centerLeft,
+                                        child: Text('RECENT',
+                                          style: TextStyle(
+                                            fontSize: 18.0,
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      flex: 10,
+                                      child: Container(
+                                        width: displayWidth(context) * .90,
+                                        child: ListView.separated(
+                                          padding: EdgeInsets.only(left: 10.0, right: 10.0),
+                                          shrinkWrap: true,
+                                          physics: const NeverScrollableScrollPhysics(),
+                                          itemCount: listRecords.data.pagination.count >= 5 ? 5 : listRecords.data.pagination.count,
+                                          itemBuilder: (BuildContext context , int index){
 
+                                            String converted = listRecords.data.records[index].date;
+                                            DateTime date = DateTime.parse(converted.substring(0, 10));
+                                            String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
 
-                                      String converted = snapshot.data.records[index].date;
-                                      DateTime date = DateTime.parse(converted.substring(0, 10));
-                                      String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
+                                            var currencyConverter = NumberFormat.currency(locale: 'fil', symbol: '\u20b1');
 
-                                      var amountConverter = NumberFormat('#,##0.00', 'en_US');
+                                            String icon = listIcons.data[listRecords.data.records[index].category.id - 1];
 
-                                      String icon = _icons[snapshot.data.records[index].category.id - 1];
-
-                                      return GestureDetector(
-                                        onTap: (){
-                                          Navigator.of(context).push(MaterialPageRoute(builder: (_) => ListRecords(hash: hash,)));
-                                        },
-                                        child: Container(
-
-                                          height: displayHeight(context) * (snapshot.data.pagination.count >= 5 ? (5/100) : (snapshot.data.pagination.count/100)),
-                                          child: ListTile(
-                                            leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'$icon')),
-                                            title: Row(
-                                              children: <Widget>[
-                                                Expanded(
-                                                  child:  Text(
-                                                    'P' + '${amountConverter.format(snapshot.data.records[index].amount)}',
+                                            return ListTile(
+                                              dense: true,
+                                              leading: IconTheme(data: IconThemeData(size: 10.0), child: icon != null ? Image.asset('assets'+'$icon') : CircularProgressIndicator()),
+                                              title: Row(
+                                                children: <Widget>[
+                                                  Expanded(
+                                                    child: Text('${currencyConverter.format(listRecords.data.records[index].amount)}', 
                                                       style: TextStyle(
                                                         fontWeight: FontWeight.bold,
-                                                        fontSize: 18.0,
+                                                        fontSize: 14.0,
                                                         fontFamily: 'Nunito',
-                                                        color: snapshot.data.records[index].recordType == 0 ? Colors.green : Colors.red,
-                                                    ),
-                                                  ),
-                                                ),
-                                                Expanded(
-                                                  child: Container(
-                                                    margin: EdgeInsets.only(bottom: 20.0),
-                                                    child: Text('$dateWithT',
-                                                    textAlign: TextAlign.right,
-                                                      style: TextStyle(
-                                                        fontSize: 12.0,
-                                                        fontFamily: 'Nunito',
-                                                        color: Color(0xff888888),
-                                                        letterSpacing: 0.5,
+                                                        color: listRecords.data.records[index].recordType == 0 ? Colors.green : Colors.red,
                                                       ),
                                                     ),
                                                   ),
-                                                ),
-                                              ],
-                                            ),
-                                            subtitle: RichText(
-                                              text: TextSpan(
-                                                children: <TextSpan>[
-                                                  TextSpan(
-                                                    text: '${snapshot.data.records[index].category.name}',
-                                                    style: TextStyle(
-                                                      color: Color(0xffbbbbbb),
-                                                      fontFamily: 'Nunito',
-                                                    ),
-                                                  ),
-                                                  TextSpan(
-                                                    text: ' — ',
-                                                    style: TextStyle(
-                                                      color: Color(0xffaaaaaa),
-                                                      fontFamily: 'Nunito',
-                                                    ),
-                                                  ),
-                                                  TextSpan(
-                                                    text: '${snapshot.data.records[index].notes}',
-                                                    style: TextStyle(
-                                                      color: Color(0xff888888),
-                                                      fontFamily: 'Nunito',
-                                                      fontStyle: FontStyle.italic,
+                                                  Expanded(
+                                                    child: Container(
+                                                      margin: EdgeInsets.only(bottom: 20.0),
+                                                      child: Text('$dateWithT',
+                                                      textAlign: TextAlign.right,
+                                                        style: TextStyle(
+                                                          fontSize: 10.0,
+                                                          fontFamily: 'Nunito',
+                                                          color: Color(0xff888888),
+                                                          letterSpacing: 0.5,
+                                                        ),
+                                                      ),
                                                     ),
                                                   ),
                                                 ],
                                               ),
+                                              subtitle: RichText(
+                                                text: TextSpan(
+                                                  children: <TextSpan>[
+                                                    TextSpan(
+                                                      text: '${listRecords.data.records[index].category.name}',
+                                                      style: TextStyle(
+                                                        color: Color(0xffbbbbbb),
+                                                        fontFamily: 'Nunito',
+                                                        fontSize: 12.0,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text: ' — ',
+                                                      style: TextStyle(
+                                                        color: Color(0xffaaaaaa),
+                                                        fontFamily: 'Nunito',
+                                                        fontSize: 12.0,
+                                                      ),
+                                                    ),
+                                                    TextSpan(
+                                                      text: '${listRecords.data.records[index].notes}'.length > 20 ? '${listRecords.data.records[index].notes}'.substring(0, 20) + '...' : '${listRecords.data.records[index].notes}',
+                                                      style: TextStyle(
+                                                        color: Color(0xff888888),
+                                                        fontFamily: 'Nunito',
+                                                        fontStyle: FontStyle.italic,
+                                                        fontSize: 12.0,
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              onTap: (){
+
+                                                String notes = listRecords.data.records[index].notes;
+                                                String amount = listRecords.data.records[index].amount.toString();
+
+                                                String date = listRecords.data.records[index].date.substring(0, 10);
+                                                DateTime finalDate = DateTime.parse(date);
+
+                                                String time = listRecords.data.records[index].date;
+                                                DateTime finalTime = DateTime.parse(time);
+
+                                                String categoryName = listRecords.data.records[index].category.name;
+
+                                                int recordType = listRecords.data.records[index].recordType;
+                                                int categoryId = listRecords.data.records[index].category.id;
+
+                                                int id = listRecords.data.records[index].id;
+
+                                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id, listCategory: categoryId - 1,))); 
+                                              },
+                                            );
+                                          }, 
+                                          separatorBuilder: (BuildContext context , int index) => const Divider(color: Color(0xffcccccc), height: 1.0), 
+                                        ),
+                                      ),
+                                    ),
+                                    Expanded(
+                                      child: Container(
+                                        alignment: Alignment.center,
+                                        child: GestureDetector(
+                                          onTap: (){
+                                            Navigator.of(context).push(MaterialPageRoute(builder: (_) => ListRecords(hash: hash,)));
+                                          },
+                                          child: Text('View More',
+                                            style: TextStyle(
+                                              fontSize: 14.0,
                                             ),
                                           ),
                                         ),
-                                      );
-                                    }, 
-                                    separatorBuilder: (BuildContext context , int index) => const Divider(color: Colors.transparent, ), 
-                                  ),
-                                ),
-                              ),
-                              Expanded(
-                                child: Container(
-                                  alignment: Alignment.center,
-                                  child: GestureDetector(
-                                    onTap: (){
-                                      Navigator.of(context).push(MaterialPageRoute(builder: (_) => ListRecords(hash: hash,)));
-                                    },
-                                    child: Text('View More',
-                                      style: TextStyle(
-                                        fontSize: 16.0,
                                       ),
                                     ),
-                                  ),
+                                  ],
                                 ),
                               ),
-                            ],
+                            ),
                           ),
                         ),
-                      ),
-                    ),
-                  ),
-                  Expanded(
-                    flex: 1,
-                    child: Container(),
-                  ),
-                ],
-              );
-            }
-          }else if(snapshot.hasError){
-            return Center(child: Text("Error"));
-          }
-          if(snapshot == null){
-            return Center(child: Text('Null'),);
+                        Expanded(
+                          flex: 1,
+                          child: Container(),
+                        ),
+                      ],
+                    );
+                  }else{
+                    return EmptyDashboard(hash: hash,);
+                  }
+                }else if(listRecords.hasError){
+                  return Center(child: Text("Error"));
+                }
+                if(listRecords == null){
+                  return Center(child: Text('Null'),);
+                }
+                return Center(child: CircularProgressIndicator());
+              },
+            );
+          }else if(listIcons.hasError){
+            return Center(child: Text('Error'));
           }
           return Center(child: CircularProgressIndicator());
         },
-      )
+      ),
     );
   }
 }
@@ -451,6 +448,35 @@ class _ChartsOverview extends State<ChartsOverview>{
       seriesList,
       animate: true,
       vertical: false,
+      // domainAxis: charts.OrdinalAxisSpec(
+      //   viewport: charts.OrdinalViewport('', 10),
+      //   renderSpec: charts.SmallTickRendererSpec(
+      //     minimumPaddingBetweenLabelsPx: 0,
+      //     labelStyle: charts.TextStyleSpec(
+      //       fontSize: 12,
+      //       fontFamily: 'Nunito'
+      //     ),
+      //   ),
+      // ),
+      primaryMeasureAxis: charts.NumericAxisSpec(
+        renderSpec: charts.GridlineRendererSpec(
+          minimumPaddingBetweenLabelsPx: 0,
+          labelStyle: charts.TextStyleSpec(
+            fontSize: 12,
+            fontFamily: 'Nunito'
+          ),
+        ),
+      ),
+      // secondaryMeasureAxis: charts.NumericAxisSpec(
+      //   renderSpec: charts.GridlineRendererSpec(
+      //     minimumPaddingBetweenLabelsPx: 0,
+      //     labelStyle: charts.TextStyleSpec(
+      //       fontSize: 12,
+      //       fontFamily: 'Nunito',
+      //     ),
+      //   ),
+      // ),
+      
       behaviors: [
         charts.ChartTitle(
           "OVERVIEW",
@@ -459,6 +485,9 @@ class _ChartsOverview extends State<ChartsOverview>{
           innerPadding: 10,
           titleOutsideJustification: charts.OutsideJustification.start,
         ),
+        // charts.SlidingViewport(),
+        // charts.SeriesLegend(),
+        // charts.PanAndZoomBehavior(),
         
         
       ],
@@ -488,7 +517,10 @@ class _ChartsOverview extends State<ChartsOverview>{
   }
 
   Widget build(BuildContext context){
-    return barChart();
+    return Padding(
+      padding: EdgeInsets.only(left: displayWidth(context) * .05 , right: displayWidth(context) * .05 ),
+      child: barChart(),
+    );
   }
 }
 

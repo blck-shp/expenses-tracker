@@ -6,6 +6,7 @@ import 'records.dart';
 import 'package:date_format/date_format.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
+// import 'package:intl/intl.dart';
 
 class ModifyRecord extends StatefulWidget{
   final bool isEmpty;
@@ -133,6 +134,7 @@ class _ModifyRecord extends State<ModifyRecord>{
     );
 
     if(response.statusCode == 200){
+      Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
       return 'Success';
     }else{
       throw Exception('Failed to update');
@@ -142,12 +144,16 @@ class _ModifyRecord extends State<ModifyRecord>{
 
   dynamic fromJsonId(Map<String, dynamic> json){
     var id = json['id'];
-    setState(() {
-      if(id != null)
-        // Navigator.of(context).pop(true);
-        // Navigator.pop(context);
-        Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
-    });
+    // setState(() {
+    //   if(id != null)
+    //     // Navigator.of(context).pop(true);
+    //     // Navigator.pop(context);
+    //     
+    // });
+
+    // if(id != null){
+    //   Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
+    // }
     return id;
     
   }
@@ -177,10 +183,6 @@ class _ModifyRecord extends State<ModifyRecord>{
 
     // to be checked!
 
-  }
-
-  @override  
-  Widget build(BuildContext context){
     if(isEmpty == false){
       _controller1.text = notes;
       _controller2.text = amount;
@@ -188,18 +190,28 @@ class _ModifyRecord extends State<ModifyRecord>{
       _convertedDate = formatDate(DateTime(int.parse('${date.year}') , int.parse('${date.month}') , int.parse('${date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
       _controller3.text = formatDate(DateTime(int.parse('${date.year}') , int.parse('${date.month}') , int.parse('${date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
 
-      String formatDateTime(DateTime time){
-        return '${time.hour}:${time.minute}';
+      String formatDateTime(DateTime dateTime){
+        String minute = (dateTime.minute).toString().padLeft(2, '0');
+        String hour = (dateTime.hour).toString();
+        return '$hour' + ':' + '$minute';
       }
+
+      _recordType = recordType;
+
+      for(int i = 0; i < _selections.length; i++){
+        if(i == recordType){
+          _selections[i] = true;
+        }else{
+          _selections[i] = false;
+        }
+      }    
 
       _convertedTime = 'T' + formatDateTime(time).toString() + ':00.000Z';
       _controller4.text = formatDateTime(time).toString();
 
       _categoryId = categoryId;
-
-
-      // _recordType = recordType;
-
+      
+      _controller5.text = categoryName;
 
       value1 = _controller1.text;
       value2 = _controller2.text;
@@ -213,15 +225,23 @@ class _ModifyRecord extends State<ModifyRecord>{
       _controller3.text = formatDate(DateTime(int.parse('${_date.year}') , int.parse('${_date.month}') , int.parse('${_date.day}')), [yyyy , ' ' , M , ' ' , dd]).toString();
 
       String formatDateTime(DateTime dateTime){
-        return '${dateTime.hour}:${dateTime.minute}';
+        String minute = (dateTime.minute).toString().padLeft(2, '0');
+        String hour = (dateTime.hour).toString();
+        return '$hour' + ':' + '$minute';
       }
       _convertedTime = 'T' + formatDateTime(_dateTime).toString() + ':00.000Z';
       _controller4.text = formatDateTime(_dateTime).toString();
       
       _categoryId = 1;
+      _controller5.text = 'Foods & Drinks';
 
+      listCategory = 0;
     }
-    
+
+  }
+
+  @override  
+  Widget build(BuildContext context){
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -248,8 +268,8 @@ class _ModifyRecord extends State<ModifyRecord>{
           IconButton(
             onPressed: ()async{
               if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
-                Center(child: CircularProgressIndicator());
-                createRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash);
+                await createRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash);
+                Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
               }
               else{
                 setState(() {
@@ -259,31 +279,42 @@ class _ModifyRecord extends State<ModifyRecord>{
                   );
                 });
               }
+              return Center(child: CircularProgressIndicator());
             },
             icon: Icon(Icons.check),
           ),
         ]
         : <Widget>[
           IconButton(
-            onPressed: (){
-              setState((){
-                showDialog(
-                  context: context,
-                  builder: (context) => DeleteMessage(header: "Prompt" , text: "Are you sure you want to delete this record?", hash: hash),
-                  
-                );
+            onPressed: ()async {
+              final result = await showDialog(
+                context: context,
+                builder: (context) => DeleteMessage(header: "Prompt" , text: "Are you sure you want to delete this record?", hash: hash),
+
+              );
+
+              if(result == true){
                 deleteRecord(hash, id);
-              });
-              
+              }
+              Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));                
             },
             icon: Icon(Icons.delete),
           ),
           IconButton(
             onPressed: ()async{
+              print('The value of _controller1.text is ${_controller1.text}');
+              print('The value of _controller2.text is ${_controller2.text}');
+              print('The value of _controller3.text is ${_controller3.text}');
+              print('The value of _controller4.text is ${_controller4.text}');
+              print('The value of _controller5.text is ${_controller5.text}');
+              print('The value of _selections[0] is ${_selections[0]}');
+              print('The value of _selections[1] is ${_selections[1]}');
+              print('The value of value6 is $value6');
+
               if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
-                if(value1 != _controller1.text || value2 != _controller2.text || value3 != _controller3.text || value4 != _controller4.text || value5 != _controller5.text || value6 != recordType){
-                  Center(child: CircularProgressIndicator());
-                  updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
+                if(value1 != _controller1.text || value2 != _controller2.text || value3 != _controller3.text || value4 != _controller4.text || value5 != _controller5.text || value6 != _recordType){
+                  await updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
+                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
                 }else{
                   Navigator.of(context).pop(false);
                 }
@@ -296,6 +327,7 @@ class _ModifyRecord extends State<ModifyRecord>{
                   );
                 });
               }
+              return Center(child: CircularProgressIndicator());
             },
             icon: Icon(Icons.check),
           ),
@@ -326,7 +358,8 @@ class _ModifyRecord extends State<ModifyRecord>{
                           selectedColor: Color(0xff90b4aa),
                           onPressed: (int index){
                             setState(() {
-                              // _recordType = index;
+                              _recordType = index;
+                              print('The recordType is $_recordType');
 
                               for(int i = 0; i < _selections.length; i++){
                                 if(i == index){
@@ -434,8 +467,9 @@ class _ModifyRecord extends State<ModifyRecord>{
                                                   ),
                                                   Expanded(
                                                     child: FlatButton(
-                                                      color: Color(0xffffffff),
-                                                      child: Text("Done"),
+                                                        child: Text(
+                                                          'DONE',
+                                                        ),
                                                       onPressed: (){
                                                         _convertedDate = formatDate(DateTime(int.parse('${_date.year}') , int.parse('${_date.month}') , int.parse('${_date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
                                                         _controller3.text = formatDate(DateTime(int.parse('${_date.year}') , int.parse('${_date.month}') , int.parse('${_date.day}')), [yyyy , ' ' , M , ' ' , dd]).toString();
@@ -530,8 +564,11 @@ class _ModifyRecord extends State<ModifyRecord>{
                                                       child: Text("Done"),
                                                       onPressed: (){
                                                         String formatDateTime(DateTime dateTime){
-                                                          return '${dateTime.hour}:${dateTime.minute}';
+                                                          String minute = (dateTime.minute).toString().padLeft(2, '0');
+                                                          String hour = (dateTime.hour).toString();
+                                                          return '$hour' + ':' + '$minute';
                                                         }
+
                                                         _convertedTime = 'T' + formatDateTime(_dateTime).toString() + ':00.000Z';
                                                         _controller4.text = formatDateTime(_dateTime).toString();
                                                         Navigator.of(context).pop(false);
@@ -597,15 +634,8 @@ class _ModifyRecord extends State<ModifyRecord>{
                         controller: _controller5,
                         onTap: () async{
                           final result = await Navigator.of(context).push(MaterialPageRoute(builder: (value) => Records(listCategory: listCategory,)));
-                          
-                          // if(result == false){
 
-                          // }else{
-                          //   _controller5.text = result[0].toString();
-                          //   _categoryId = result[1];
-                          //   listCategory = result[2];
-                          // }
-                          if(result == true){
+                          if(result != true){
                             _controller5.text = result[0].toString();
                             _categoryId = result[1];
                             listCategory = result[2];

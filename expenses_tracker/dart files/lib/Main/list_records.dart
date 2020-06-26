@@ -37,25 +37,7 @@ class _ListRecords extends State<ListRecords>{
   bool isLoading = false;
   bool isLoading2 = false;
 
-  //   List<String> icons = [
-  //   "/images/ic_food_drinks.png",
-  //   "/images/ic_groceries.png",
-  //   "/images/ic_clothes.png",
-  //   "/images/ic_electronics.png",
-  //   "/images/ic_healthcare.png",
-  //   "/images/ic_gifts.png",
-  //   "/images/ic_transportation.png",
-  //   "/images/ic_education.png",
-  //   "/images/ic_entertainment.png",
-  //   "/images/ic_utilities.png",
-  //   "/images/ic_rent.png",
-  //   "/images/ic_household.png",
-  //   "/images/ic_investments.png",
-  //   "/images/ic_other.png",
-  // ];
-
   List<String> _icons = [];
-
 
   @override
   void dispose(){
@@ -67,19 +49,10 @@ class _ListRecords extends State<ListRecords>{
 
     super.initState();
 
-    // setState(() {
-    //   if(_icons == null){
-    //     getList();
-    //   }
-    // });
-
-    getList();
-
     if(searchValue == ''){
       _getListRecords(hash, count);
     }
 
-    
     count = 2;
     count2 = 0;
   }
@@ -89,9 +62,7 @@ class _ListRecords extends State<ListRecords>{
     final response = await http.get('http://expenses.koda.ws/api/v1/categories');
 
     _categoryName(Map<String, dynamic> parsedJson){
-      setState(() {
         _icons.add(parsedJson['icon']);
-      });
     }
 
     _category(Map<String, dynamic> parsedJson){
@@ -99,9 +70,9 @@ class _ListRecords extends State<ListRecords>{
       list.map((e) => _categoryName(e)).toList();
     }
 
-    // _category(json.decode(response.body));
     if(response.statusCode == 200){
       _category(json.decode(response.body));
+      return _icons;
     }else{
       throw Exception('Failed to get the icons');
     }
@@ -136,33 +107,20 @@ class _ListRecords extends State<ListRecords>{
         if(val.pagination.pages >= count){
           items2.addAll(val.records);
         }
-        
       }
       
       isLoading2 = false;
     });
   } 
 
-  
-
-
   @override
   Widget build(BuildContext context){
-    print('asdfsdafsadfs is $_icons');
     if(searchValue != ''){
       setState(() {
         count2++;
         searchRecords(hash, searchValue, count2);
       });
     }
-
-    if(_icons == []){
-      print('Taka lang ug turok hngggg');
-      setState(() {
-        getList();
-      });
-    }
-
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: AppBar(
@@ -262,331 +220,339 @@ class _ListRecords extends State<ListRecords>{
         child: Icon(Icons.add),
       ),
 
-      body: searchValue != ''
+      body: FutureBuilder(
+        future: getList(),
+        builder: (context, listIcons){
+          if(listIcons.hasData){
+            if(searchValue != ''){
+              return Column(
+                children: <Widget>[
+                  Expanded(
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: (ScrollNotification scrollInfo){
+                        if(!isLoading2 && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent){
+                          searchRecords(hash, searchValue, count2);
+                          setState(() {
+                            isLoading2 = true;
+                            count2 = count2 + 1;  
+                          }); 
+                        }
+                        return isLoading2;
+                      },
+                      child: ListView.separated(
+                        itemCount: items2.length,
+                        separatorBuilder: (_, __) => Divider(height: 0),
+                        itemBuilder: (_, index){
 
-      ? Column(
-        children: <Widget>[
-          Expanded(
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (ScrollNotification scrollInfo){
-                if(!isLoading2 && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent){
-                  getList();
-                  searchRecords(hash, searchValue, count2);
-                  setState(() {
-                      
-                    isLoading2 = true;
-                    count2 = count2 + 1;  
-                  }); 
-                }
-                return isLoading2;
-              },
-              child: ListView.separated(
-                itemCount: items2.length,
-                separatorBuilder: (_, __) => Divider(height: 0),
-                itemBuilder: (_, index){
+                          String converted = items2[index].date;
+                          DateTime date = DateTime.parse(converted.substring(0, 10));
+                          String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
 
-                  String converted = items2[index].date;
-                  DateTime date = DateTime.parse(converted.substring(0, 10));
-                  String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
+                          // var amountConverter = NumberFormat('#,##0.00', 'en_US');
 
-                  var amountConverter = NumberFormat('#,##0.00', 'en_US');
+                          var currencyConverter = NumberFormat.currency(locale: 'fil', symbol: '\u20b1');
 
-                  String icon = _icons[items2[index].category.id - 1];
-
-                  return Dismissible(
-                    key: ValueKey(items2[index].id),
-                    direction: DismissDirection.startToEnd,
-                    onDismissed: (direction){
-                      setState(() {
-                        items2.removeAt(index);
-                      });
-                    },
-                    confirmDismiss: (direction) async{
-                      final result = await showDialog(
-                        context: context,
-                        builder: (_) => DeleteRecord(),
-                      );
-                      if(result == true){
-                        deleteRecord(hash, items2[index].id);
-                      }
-                      return result;
-                    },
-                    background: Container(
-                      color: Colors.red,
-                      padding: EdgeInsets.only(left: 10.0),
-                      child: Align(child: Icon(Icons.delete, color: Color(0xffffffff)) , alignment: Alignment.centerLeft,)
-                    ),
-                    
-                    child: ListTile(
-                      // _icons[items2[index].category.id - 1
-                      leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'$icon')),
-                      title: Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Text(
-                              'P' + '${amountConverter.format(items2[index].amount)}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18.0,
-                                  fontFamily: 'Nunito',
-                                  color: items2[index].recordType == 0 ? Colors.green : Colors.red,
-                              ),
+                          return Dismissible(
+                            key: ValueKey(items2[index].id),
+                            direction: DismissDirection.startToEnd,
+                            onDismissed: (direction){
+                              setState(() {
+                                items2.removeAt(index);
+                              });
+                            },
+                            confirmDismiss: (direction) async{
+                              final result = await showDialog(
+                                context: context,
+                                builder: (_) => DeleteRecord(),
+                              );
+                              if(result == true){
+                                deleteRecord(hash, items2[index].id);
+                              }
+                              return result;
+                            },
+                            background: Container(
+                              color: Colors.red,
+                              padding: EdgeInsets.only(left: 10.0),
+                              child: Align(child: Icon(Icons.delete, color: Color(0xffffffff)) , alignment: Alignment.centerLeft,)
                             ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              margin: EdgeInsets.only(bottom: 20.0),
-                              child: Text('$dateWithT',
-                              textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  fontFamily: 'Nunito',
-                                  color: Color(0xff888888),
-                                  letterSpacing: 0.5,
+                            
+                            child: ListTile(
+                              leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${listIcons.data[items2[index].category.id - 1]}')),
+                              title: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Text('${currencyConverter.format(items2[index].amount)}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14.0,
+                                          fontFamily: 'Nunito',
+                                          color: items2[index].recordType == 0 ? Colors.green : Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      margin: EdgeInsets.only(bottom: 20.0),
+                                      child: Text('$dateWithT',
+                                      textAlign: TextAlign.right,
+                                        style: TextStyle(
+                                          fontSize: 10.0,
+                                          fontFamily: 'Nunito',
+                                          color: Color(0xff888888),
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle: RichText(
+                                text: TextSpan(
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                      text: '${items2[index].category.name}',
+                                      style: TextStyle(
+                                        color: Color(0xffbbbbbb),
+                                        fontFamily: 'Nunito',
+                                        fontSize: 12.0,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: ' — ',
+                                      style: TextStyle(
+                                        color: Color(0xffaaaaaa),
+                                        fontFamily: 'Nunito',
+                                        fontSize: 12.0,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: '${items2[index].notes}',
+                                      style: TextStyle(
+                                        color: Color(0xff888888),
+                                        fontFamily: 'Nunito',
+                                        fontSize: 12.0,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
+
+                              onTap: (){
+                                String notes = items2[index].notes;
+                                String amount = items2[index].amount.toString();
+                                
+                                String date = items2[index].date.substring(0, 10);
+                                DateTime finalDate = DateTime.parse(date);
+
+                                String time = items2[index].date;
+                                DateTime finalTime = DateTime.parse(time);
+
+                                String categoryName = items2[index].category.name;
+
+                                int recordType = items2[index].recordType;
+                                int categoryId = items2[index].category.id;
+
+                                int id = items2[index].id;
+
+                                _icons = [];
+
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id, listCategory: categoryId - 1,))); 
+                              },
+
+                              onLongPress: ()async{
+                                final result = await showDialog(
+                                  context: context,
+                                  builder: (_) => DeleteRecord(),
+                                );
+                                if(result == true){
+                                  deleteRecord(hash, items2[index].id);
+                                  // setState(() {
+                                  // });
+                                }
+                              },
                             ),
-                          ),
-                        ],
+                          );
+                        }, 
                       ),
-                      subtitle: RichText(
-                        text: TextSpan(
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: '${items2[index].category.name}',
-                              style: TextStyle(
-                                color: Color(0xffbbbbbb),
-                                fontFamily: 'Nunito',
-                              ),
-                            ),
-                            TextSpan(
-                              text: ' — ',
-                              style: TextStyle(
-                                color: Color(0xffaaaaaa),
-                                fontFamily: 'Nunito',
-                              ),
-                            ),
-                            TextSpan(
-                              text: '${items2[index].notes}',
-                              style: TextStyle(
-                                color: Color(0xff888888),
-                                fontFamily: 'Nunito',
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-
-                      onTap: (){
-                        String notes = items2[index].notes;
-                        String amount = items2[index].amount.toString();
-                        
-                        String date = items2[index].date.substring(0, 10);
-                        DateTime finalDate = DateTime.parse(date);
-
-                        String time = items2[index].date;
-                        DateTime finalTime = DateTime.parse(time);
-
-                        String categoryName = items2[index].category.name;
-
-                        int recordType = items2[index].recordType;
-                        int categoryId = items2[index].category.id;
-
-                        int id = items2[index].id;
-
-                        _icons = [];
-
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id, listCategory: categoryId - 1,))); 
-                      },
-
-                      onLongPress: ()async{
-                        final result = await showDialog(
-                          context: context,
-                          builder: (_) => DeleteRecord(),
-                        );
-                        if(result == true){
-                          deleteRecord(hash, items2[index].id);
+                    ),
+                  ),
+                  Container(
+                    height: isLoading2 ? 50.0 : 0,
+                    color: Colors.transparent,
+                    child: Center(
+                      child: new CircularProgressIndicator(),
+                    ),
+                  ),
+                ],
+              );
+            }else{
+              return Column(
+                children: <Widget>[
+                  Expanded(
+                    child: NotificationListener<ScrollNotification>(
+                      onNotification: (ScrollNotification scrollInfo){
+                        if(!isLoading && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent){
+                          _getListRecords(hash, count);
                           setState(() {
-                          });
+                            isLoading = true;
+                            count = count + 1;  
+                          }); 
                         }
+                        return isLoading;
                       },
-                    ),
-                  );
-                }, 
-              ),
-            ),
-          ),
-          Container(
-            height: isLoading2 ? 50.0 : 0,
-            color: Colors.transparent,
-            child: Center(
-              child: new CircularProgressIndicator(),
-            ),
-          ),
-        ],
-      )
+                      child: ListView.separated(
+                        itemCount: items.length,
+                        separatorBuilder: (_, __) => Divider(height: 0),
+                        itemBuilder: (context , index){
 
-      : Column(
-        children: <Widget>[
-          Expanded(
-            child: NotificationListener<ScrollNotification>(
-              onNotification: (ScrollNotification scrollInfo){
-                if(!isLoading && scrollInfo.metrics.pixels == scrollInfo.metrics.maxScrollExtent){
-                  getList();
-                  _getListRecords(hash, count);
-                  setState(() {
-                    isLoading = true;
-                    count = count + 1;  
-                  }); 
-                }
-                return isLoading;
-              },
-              child: ListView.separated(
-                itemCount: items.length,
-                separatorBuilder: (_, __) => Divider(height: 0),
-                itemBuilder: (context , index){
+                          String converted = items[index].date;
+                          DateTime date = DateTime.parse(converted.substring(0, 10));
+                          String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
 
-                  String converted = items[index].date;
-                  DateTime date = DateTime.parse(converted.substring(0, 10));
-                  String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
+                          // var amountConverter = NumberFormat('#,##0.00', 'en_US');
 
-                  var amountConverter = NumberFormat('#,##0.00', 'en_US');
+                          var currencyConverter = NumberFormat.currency(locale: 'fil', symbol: '\u20b1');
 
-                  String icon = _icons[items[index].category.id - 1];
-
-                  return Dismissible(
-                    key: ValueKey(items[index].id),
-                    direction: DismissDirection.startToEnd,
-                    onDismissed: (direction){
-                      setState(() {
-                        items.removeAt(index);
-                      });
-                    },
-                    confirmDismiss: (direction) async{
-                      final result = await showDialog(
-                        context: context,
-                        builder: (_) => DeleteRecord(),
-                        
-                      );
-                      if(result == true){
-                        deleteRecord(hash, items[index].id);
-                      }
-                      return result;
-                    },
-                    background: Container(
-                      color: Colors.red,
-                      padding: EdgeInsets.only(left: 10.0),
-                      child: Align(child: Icon(Icons.delete, color: Color(0xffffffff)) , alignment: Alignment.centerLeft,)
-                    ),
-                  
-                    child: ListTile(
-                      leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'$icon')),
-                      title: Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: Text(
-                              'P' + '${amountConverter.format(items[index].amount)}',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 18.0,
-                                  fontFamily: 'Nunito',
-                                  color: items[index].recordType == 0 ? Colors.green : Colors.red,
-                              ),
+                          return Dismissible(
+                            key: ValueKey(items[index].id),
+                            direction: DismissDirection.startToEnd,
+                            onDismissed: (direction){
+                              setState(() {
+                                items.removeAt(index);
+                              });
+                            },
+                            confirmDismiss: (direction) async{
+                              final result = await showDialog(
+                                context: context,
+                                builder: (_) => DeleteRecord(),
+                                
+                              );
+                              if(result == true){
+                                deleteRecord(hash, items[index].id);
+                              }
+                              return result;
+                            },
+                            background: Container(
+                              color: Colors.red,
+                              padding: EdgeInsets.only(left: 10.0),
+                              child: Align(child: Icon(Icons.delete, color: Color(0xffffffff)) , alignment: Alignment.centerLeft,)
                             ),
-                          ),
-                          Expanded(
-                            child: Container(
-                              margin: EdgeInsets.only(bottom: 20.0),
-                              child: Text('$dateWithT',
-                              textAlign: TextAlign.right,
-                                style: TextStyle(
-                                  fontSize: 12.0,
-                                  fontFamily: 'Nunito',
-                                  color: Color(0xff888888),
-                                  letterSpacing: 0.5,
+                          
+                            child: ListTile(
+                              leading: IconTheme(data: IconThemeData(size: 10.0), child: Image.asset('assets'+'${listIcons.data[items[index].category.id - 1]}')),
+                              title: Row(
+                                children: <Widget>[
+                                  Expanded(
+                                    child: Text('${currencyConverter.format(items[index].amount)}',
+                                        style: TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 14.0,
+                                          fontFamily: 'Nunito',
+                                          color: items[index].recordType == 0 ? Colors.green : Colors.red,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      margin: EdgeInsets.only(bottom: 20.0),
+                                      child: Text('$dateWithT',
+                                      textAlign: TextAlign.right,
+                                        style: TextStyle(
+                                          fontSize: 10.0,
+                                          fontFamily: 'Nunito',
+                                          color: Color(0xff888888),
+                                          letterSpacing: 0.5,
+                                        ),
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              subtitle: RichText(
+                                text: TextSpan(
+                                  children: <TextSpan>[
+                                    TextSpan(
+                                      text: '${items[index].category.name}',
+                                      style: TextStyle(
+                                        color: Color(0xffbbbbbb),
+                                        fontFamily: 'Nunito',
+                                        fontSize: 12.0,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: ' — ',
+                                      style: TextStyle(
+                                        color: Color(0xffaaaaaa),
+                                        fontFamily: 'Nunito',
+                                        fontSize: 12.0,
+                                      ),
+                                    ),
+                                    TextSpan(
+                                      text: '${items[index].notes}',
+                                      style: TextStyle(
+                                        color: Color(0xff888888),
+                                        fontFamily: 'Nunito',
+                                        fontSize: 12.0,
+                                        fontStyle: FontStyle.italic,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
+                              onTap: (){
+                                String notes = items[index].notes;
+                                String amount = items[index].amount.toString();
+                                
+                                String date = items[index].date.substring(0, 10);
+                                DateTime finalDate = DateTime.parse(date);
+                                
+                                String time = items[index].date;
+                                DateTime finalTime = DateTime.parse(time);
+
+                                String categoryName = items[index].category.name;
+
+                                int recordType = items[index].recordType;
+                                int categoryId = items[index].category.id;
+
+                                int id = items[index].id;
+
+                                _icons = [];
+                                
+                                Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id, listCategory: categoryId - 1,))); 
+                              },
+
+                              onLongPress: ()async{
+                                final result = await showDialog(
+                                  context: context,
+                                  builder: (_) => DeleteRecord(),
+                                );
+
+                                if(result == true){
+                                  deleteRecord(hash, items[index].id);
+                                }
+                              },
                             ),
-                          ),
-                        ],
-                      ),
-                      subtitle: RichText(
-                        text: TextSpan(
-                          children: <TextSpan>[
-                            TextSpan(
-                              text: '${items[index].category.name}',
-                              style: TextStyle(
-                                color: Color(0xffbbbbbb),
-                                fontFamily: 'Nunito',
-                              ),
-                            ),
-                            TextSpan(
-                              text: ' — ',
-                              style: TextStyle(
-                                color: Color(0xffaaaaaa),
-                                fontFamily: 'Nunito',
-                              ),
-                            ),
-                            TextSpan(
-                              text: '${items[index].notes}',
-                              style: TextStyle(
-                                color: Color(0xff888888),
-                                fontFamily: 'Nunito',
-                                fontStyle: FontStyle.italic,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                      onTap: (){
-                        String notes = items[index].notes;
-                        String amount = items[index].amount.toString();
-                        
-                        String date = items[index].date.substring(0, 10);
-                        DateTime finalDate = DateTime.parse(date);
-                        
-                        String time = items[index].date;
-                        DateTime finalTime = DateTime.parse(time);
-
-                        String categoryName = items[index].category.name;
-
-                        int recordType = items[index].recordType;
-                        int categoryId = items[index].category.id;
-
-                        int id = items[index].id;
-
-                        _icons = [];
-                        
-                        Navigator.of(context).push(MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: false, hash: hash, notes: notes, amount: amount, date: finalDate, time: finalTime, categoryName: categoryName, recordType: recordType, categoryId: categoryId, id: id, listCategory: categoryId - 1,))); 
-                      },
-
-                      onLongPress: ()async{
-                        final result = await showDialog(
-                          context: context,
-                          builder: (_) => DeleteRecord(),
-                        );
-
-                        if(result == true){
-                          deleteRecord(hash, items[index].id);
-                          setState(() {
-                          });
+                          );
                         }
-                      },
+                      ),
                     ),
-                  );
-                }
-              ),
-            ),
-          ),
-          Container(
-            height: isLoading ? 50.0 : 0,
-            color: Colors.transparent,
-            child: Center(
-              child: new CircularProgressIndicator(),
-            ),
-          ),
-        ],
+                  ),
+                  Container(
+                    height: isLoading ? 50.0 : 0,
+                    color: Colors.transparent,
+                    child: Center(
+                      child: new CircularProgressIndicator(),
+                    ),
+                  ),
+                ],
+              );
+            }
+          }else if(listIcons.hasError){
+            return Center(child: Text('Data unavailable. Please check your connection.'));
+          }
+          return Center(child: CircularProgressIndicator());
+        },
       ),
     );
   }

@@ -1,4 +1,3 @@
-import 'package:expenses_tracker/Main/list_records.dart';
 import 'package:flutter/material.dart';
 import 'sizes.dart';
 
@@ -194,13 +193,15 @@ class DeleteMessage extends StatelessWidget{
         FlatButton(
           child: Text("NO"),
           onPressed: (){
-            Navigator.pop(context);
+            // Navigator.pop(context);
+            Navigator.pop(context, false);
           },
         ),
         FlatButton(
           child: Text("YES"),
           onPressed: (){
-            Navigator.of(context).push(MaterialPageRoute(builder: (context) => ListRecords(hash: hash)));
+            // Navigator.of(context).push(MaterialPageRoute(builder: (context) => Dashboard(hash: hash)));
+            Navigator.pop(context, true);
           },
         ),
       ],
