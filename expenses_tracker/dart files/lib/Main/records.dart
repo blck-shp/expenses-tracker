@@ -1,24 +1,26 @@
 import 'dart:convert';
-import 'package:expenses_tracker/Extras/extras.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 
 class Records extends StatefulWidget{
-  final String hash;
   final int listCategory;
 
-  Records({this.hash, this.listCategory});
+  Records({this.listCategory});
 
   @override
-  _Records createState() => _Records(hash: hash, listCategory: listCategory);
+  _Records createState() => _Records(listCategory: listCategory);
 }
 
 class _Records extends State<Records>{
 
-  final String hash;
   int listCategory;
 
-  _Records({this.hash, this.listCategory});
+  _Records({this.listCategory});
+
+  @override
+  void dispose(){
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context){
@@ -31,7 +33,7 @@ class _Records extends State<Records>{
             return IconButton(
               icon: Icon(Icons.arrow_back),
               onPressed: (){
-                Navigator.of(context).pop(false);
+                Navigator.of(context).pop(true);
               },
             );
           },
@@ -56,12 +58,6 @@ class _Records extends State<Records>{
                     title: Text(snapshot.data.categories[index].name),
                     onTap: (){
                       Navigator.pop(context, ['${snapshot.data.categories[index].name}' , snapshot.data.categories[index].id, index]);
-                    },
-                    onLongPress: (){
-                      showDialog(
-                        context: context,
-                        builder: (_) => DeleteRecord(),
-                      );
                     },
                   ),
                 );

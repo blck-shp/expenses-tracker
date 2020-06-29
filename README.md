@@ -74,3 +74,7 @@
 ### Additional info as of June 26, 2020.
 
 So far, all of the issues mentioned above were all fixed and have been tested along the way but the code needs to be refactored. The UI of this mini project has also been updated or modified especially in regards to the currency and the list tiles that are being displayed.
+
+### Additional info as of June 29, 2020.
+
+So far, all of the issues in regards to the navigation were already fixed. Added another functionality that lets the user press anywhere but textfields to dismiss the display of keyboard and deleted the unused/practices files.

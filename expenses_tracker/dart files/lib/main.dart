@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:expenses_tracker/Extras/extras.dart';
+import 'Extras/sizes.dart';
 import 'Main/registration.dart';
 import 'Main/login.dart';
 
@@ -19,6 +20,12 @@ class Onboarding extends StatefulWidget{
 }
 
 class _Onboarding extends State<Onboarding>{
+
+  @override
+  void dispose(){
+    super.dispose();
+  }
+
   @override
 
   Widget build(BuildContext context){
@@ -99,8 +106,22 @@ class _Onboarding extends State<Onboarding>{
                 children: <Widget>[
                   Expanded(
                     child: Container(
-                      margin: EdgeInsets.only(top: 10.0 , bottom: 10.0),
-                      child: ButtonFilled(width: .75 , height: 0, fontSize: 20.0, text: "SIGN UP" , backgroundColor: Color(0xffffffff), fontWeight: FontWeight.bold, nextPage: Registration(),),
+                      margin: EdgeInsets.only(top: 15.0 , bottom: 15.0),
+                      child: MaterialButton(
+                        color: Color(0xffffffff),
+                        minWidth: displayWidth(context) * .75,
+                        onPressed: (){
+                          // Route route = MaterialPageRoute(builder: (context) => Registration());
+                          // Navigator.push(context , route);
+                          Navigator.of(context).push(MaterialPageRoute(builder: (context) => Registration()));
+                        },
+                        child: Text("SIGN UP", 
+                          style: TextStyle(
+                            fontSize: 20.0,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
                     ),
                   ),
                   Expanded(

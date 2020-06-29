@@ -5,7 +5,6 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dashboard.dart';
 import 'modify_record.dart';
-import '../main.dart';
 import 'package:date_format/date_format.dart';
 import 'package:intl/intl.dart';
 
@@ -126,6 +125,16 @@ class _ListRecords extends State<ListRecords>{
       appBar: AppBar(
         backgroundColor: Color(0xff246c55),
         centerTitle: true,
+        leading: Builder(
+          builder: (BuildContext context){
+            return IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: (){
+                Navigator.popUntil(context, ModalRoute.withName('/'));
+              },
+            );
+          }
+        ),
         title: _searching == true
         ? TextFormField(
           style: TextStyle(
@@ -179,38 +188,6 @@ class _ListRecords extends State<ListRecords>{
           ),
         ],
       ),
-      drawer: Drawer(
-        child: Container(
-          color: Color(0xff246c55),
-          child: Column(
-            children: <Widget>[
-              Expanded(
-                flex: 2,
-                child: Container(),
-              ),
-              Expanded(
-                child: Column(
-                  children: <Widget>[
-                    Expanded(
-                      child: IconLink(text: "HOME" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Dashboard(hash: hash,)),
-                    ),
-                    Expanded(
-                      child: IconLink(text: "RECORDS" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: ListRecords(hash: hash,)),
-                    ),
-                    Expanded(
-                      child: IconLink(text: "LOGOUT" , icon: Icon(Icons.add , color: Color(0xffffffff)) , fontSize: 16.0, fontWeight: FontWeight.bold, fontColor: Color(0xffffffff), nextPage: Onboarding()),
-                    ),
-                  ],
-                ),
-              ),
-              Expanded(
-                flex: 2,
-                child: Container(),
-              ),
-            ],
-          ),
-        ),
-      ),
       floatingActionButton: FloatingActionButton(
         onPressed: (){
           Route route = MaterialPageRoute(builder: (context) => ModifyRecord(isEmpty: true, hash: hash));
@@ -248,8 +225,6 @@ class _ListRecords extends State<ListRecords>{
                           DateTime date = DateTime.parse(converted.substring(0, 10));
                           String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
 
-                          // var amountConverter = NumberFormat('#,##0.00', 'en_US');
-
                           var currencyConverter = NumberFormat.currency(locale: 'fil', symbol: '\u20b1');
 
                           return Dismissible(
@@ -263,7 +238,7 @@ class _ListRecords extends State<ListRecords>{
                             confirmDismiss: (direction) async{
                               final result = await showDialog(
                                 context: context,
-                                builder: (_) => DeleteRecord(),
+                                builder: (context) => DeleteRecord(),
                               );
                               if(result == true){
                                 deleteRecord(hash, items2[index].id);
@@ -363,12 +338,10 @@ class _ListRecords extends State<ListRecords>{
                               onLongPress: ()async{
                                 final result = await showDialog(
                                   context: context,
-                                  builder: (_) => DeleteRecord(),
+                                  builder: (context) => DeleteRecord(),
                                 );
                                 if(result == true){
                                   deleteRecord(hash, items2[index].id);
-                                  // setState(() {
-                                  // });
                                 }
                               },
                             ),
@@ -409,8 +382,6 @@ class _ListRecords extends State<ListRecords>{
                           String converted = items[index].date;
                           DateTime date = DateTime.parse(converted.substring(0, 10));
                           String dateWithT = formatDate(date, [MM , ' ' , dd , ', ' , yyyy]).toString();
-
-                          // var amountConverter = NumberFormat('#,##0.00', 'en_US');
 
                           var currencyConverter = NumberFormat.currency(locale: 'fil', symbol: '\u20b1');
 

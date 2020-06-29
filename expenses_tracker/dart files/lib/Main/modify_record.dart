@@ -6,7 +6,6 @@ import 'records.dart';
 import 'package:date_format/date_format.dart';
 import 'dart:convert';
 import 'package:http/http.dart' as http;
-// import 'package:intl/intl.dart';
 
 class ModifyRecord extends StatefulWidget{
   final bool isEmpty;
@@ -92,6 +91,7 @@ class _ModifyRecord extends State<ModifyRecord>{
   );
 
   if(response.statusCode == 200){
+    Navigator.popAndPushNamed(context, '/');
     return fromJsonId(json.decode(response.body));
     }else{
       throw Exception('Failed to update');
@@ -134,7 +134,7 @@ class _ModifyRecord extends State<ModifyRecord>{
     );
 
     if(response.statusCode == 200){
-      Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
+      Navigator.popAndPushNamed(context, '/');
       return 'Success';
     }else{
       throw Exception('Failed to update');
@@ -144,44 +144,12 @@ class _ModifyRecord extends State<ModifyRecord>{
 
   dynamic fromJsonId(Map<String, dynamic> json){
     var id = json['id'];
-    // setState(() {
-    //   if(id != null)
-    //     // Navigator.of(context).pop(true);
-    //     // Navigator.pop(context);
-    //     
-    // });
-
-    // if(id != null){
-    //   Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
-    // }
     return id;
-    
   }
 
   @override
   void initState(){
   super.initState();
-
-    // if(isEmpty == true){
-    //   listCategory = 0;
-    //   _controller5.text = 'Food & Drinks';
-    // }else{
-    //   _controller5.text = categoryName;
-    //   listCategory = listCategory;
-    // }
-    
-    // if(recordType != null){
-    //   _recordType = recordType;
-    //   for(int i = 0; i < _selections.length; i++){
-    //     if(i == recordType){
-    //       _selections[i] = true;
-    //     }else{
-    //       _selections[i] = false;
-    //     }
-    //   }  
-    // }
-
-    // to be checked!
 
     if(isEmpty == false){
       _controller1.text = notes;
@@ -242,441 +210,460 @@ class _ModifyRecord extends State<ModifyRecord>{
 
   @override  
   Widget build(BuildContext context){
-    return Scaffold(
-      resizeToAvoidBottomInset: false,
-      appBar: AppBar(
-        title: widget.isEmpty == true ? Text("Add Record") : Text("Edit Record"),
-        backgroundColor: Color(0xff246c55),
-        centerTitle: true,
-        actions: widget.isEmpty == true
-        ? <Widget>[
-          IconButton(
-            onPressed: (){
-              if(_controller1.text != '' || _controller2.text != '' || _controller3.text != '' || _controller4.text != '' || _controller5.text != '' || (_selections[0] == true || _selections[1] == true)){
-                setState(() {
-                  showDialog(
-                    context: context,
-                    builder: (context) => PromptMessage(header: "Prompt" , text: "Are you sure you want to discard these changes?"), 
-                  );
-                }); 
-              }else{
-                Navigator.of(context).pop(false);
-              }
-            },
-            icon: Icon(Icons.delete)
-          ),
-          IconButton(
-            onPressed: ()async{
-              if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
-                await createRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash);
-                Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
-              }
-              else{
-                setState(() {
-                  showDialog(
-                    context: context,
-                    builder: (context) => ErrorMessage(header: "Error" , text: "Please complete the form before proceeding."), 
-                  );
-                });
-              }
-              return Center(child: CircularProgressIndicator());
-            },
-            icon: Icon(Icons.check),
-          ),
-        ]
-        : <Widget>[
-          IconButton(
-            onPressed: ()async {
-              final result = await showDialog(
-                context: context,
-                builder: (context) => DeleteMessage(header: "Prompt" , text: "Are you sure you want to delete this record?", hash: hash),
+    return GestureDetector(
+      onTap: (){
+        FocusScopeNode focus = FocusScope.of(context);
 
-              );
-
-              if(result == true){
-                deleteRecord(hash, id);
-              }
-              Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));                
-            },
-            icon: Icon(Icons.delete),
-          ),
-          IconButton(
-            onPressed: ()async{
-              print('The value of _controller1.text is ${_controller1.text}');
-              print('The value of _controller2.text is ${_controller2.text}');
-              print('The value of _controller3.text is ${_controller3.text}');
-              print('The value of _controller4.text is ${_controller4.text}');
-              print('The value of _controller5.text is ${_controller5.text}');
-              print('The value of _selections[0] is ${_selections[0]}');
-              print('The value of _selections[1] is ${_selections[1]}');
-              print('The value of value6 is $value6');
-
-              if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
-                if(value1 != _controller1.text || value2 != _controller2.text || value3 != _controller3.text || value4 != _controller4.text || value5 != _controller5.text || value6 != _recordType){
-                  await updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
-                  Navigator.of(context).push(MaterialPageRoute(builder: (_) => Dashboard(hash: hash)));
+        if(!focus.hasPrimaryFocus){
+          focus.unfocus();
+        }
+      },
+      child: Scaffold(
+        resizeToAvoidBottomInset: false,
+        appBar: AppBar(
+          title: widget.isEmpty == true ? Text("Add Record") : Text("Edit Record"),
+          backgroundColor: Color(0xff246c55),
+          centerTitle: true,
+          leading: Builder(
+          builder: (BuildContext context){
+            return IconButton(
+              icon: Icon(Icons.arrow_back),
+              onPressed: (){
+                if(widget.isEmpty){
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dashboard(hash: hash,)));
                 }else{
-                  Navigator.of(context).pop(false);
+                  Navigator.popUntil(context, ModalRoute.withName('/'));
                 }
-              } 
-              else{
-                setState(() {
-                  showDialog(
-                    context: context,
-                    builder: (context) => ErrorMessage(header: "Error" , text: "Please complete the form before proceeding."), 
-                  );
-                });
-              }
-              return Center(child: CircularProgressIndicator());
-            },
-            icon: Icon(Icons.check),
-          ),
-        ],
-      ),
-      body:  Column(
-        children: <Widget>[
-          Expanded(
-            child: Container(
-              padding: EdgeInsets.only(top: 10.0, bottom: 10.0, left: 50.0, right: 50.0),
-              child: Form(
-                child: Column(
-                  children: <Widget>[
-                    Expanded(
-                      child: Container(
-                        child: ToggleButtons(
-                          fillColor: Color(0xff246c55),
-                          children: <Widget>[
-                            SizedBox(
-                              width: 100.0,
-                              child: Text("Income", textAlign: TextAlign.center,),
+              },
+            );
+          }
+        ),
+          actions: widget.isEmpty == true
+          ? <Widget>[
+            IconButton(
+              onPressed: () async {
+                if(_controller1.text == '' && _controller2.text == '' && (_selections[0] == false && _selections[1] == false)){
+                  setState(() {
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dashboard(hash: hash,)));
+                  });
+                  
+                }else if(_controller1.text != '' || _controller2.text != '' || _controller3.text != '' || _controller4.text != '' || _controller5.text != '' || (_selections[0] == true || _selections[1] == true)){
+                    var result = await showDialog(
+                      context: context,
+                      builder: (context) => PromptMessage(header: "Prompt" , text: "Are you sure you want to discard these changes?"), 
+                    );
+                    print('The result is $result');
+                    if(result == true){
+                      Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dashboard(hash: hash,)));
+                    }
+                }
+              },
+              icon: Icon(Icons.delete)
+            ),
+            IconButton(
+              onPressed: ()async{
+                if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
+                  final result = await createRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash);
+                  if(result != null){
+                    Navigator.pushReplacement(context, MaterialPageRoute(builder: (context) => Dashboard(hash: hash,)));
+                  }
+                }
+                else{
+                  setState(() {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ErrorMessage(header: "Error" , text: "Please complete the form before proceeding."), 
+                    );
+                  });
+                }
+                return Center(child: CircularProgressIndicator());
+              },
+              icon: Icon(Icons.check),
+            ),
+          ]
+          : <Widget>[
+            IconButton(
+              onPressed: ()async {
+                final result = await showDialog(
+                  context: context,
+                  builder: (context) => DeleteMessage(header: "Prompt" , text: "Are you sure you want to delete this record?", hash: hash),
+                );
+
+                if(result == true){
+                  await deleteRecord(hash, id);
+                }
+                
+              },
+              icon: Icon(Icons.delete),
+            ),
+            IconButton(
+              onPressed: ()async{
+
+                if(_controller1.text != '' && _controller2.text != '' && _controller3.text != '' && _controller4.text != '' && _controller5.text != '' && (_selections[0] == true || _selections[1] == true)){
+                  if(value1 != _controller1.text || value2 != _controller2.text || value3 != _controller3.text || value4 != _controller4.text || value5 != _controller5.text || value6 != _recordType){
+                    await updateRecord(double.parse(_controller2.text) , _controller1.text , _convertedDate , _convertedTime , _recordType , _categoryId , hash, id);
+                  }else{
+                    Navigator.of(context).pop(false);
+                  }
+                } 
+                else{
+                  setState(() {
+                    showDialog(
+                      context: context,
+                      builder: (context) => ErrorMessage(header: "Error" , text: "Please complete the form before proceeding."), 
+                    );
+                  });
+                }
+                return Center(child: CircularProgressIndicator());
+              },
+              icon: Icon(Icons.check),
+            ),
+          ],
+        ),
+        body:  Column(
+          children: <Widget>[
+            Expanded(
+              child: Container(
+                padding: EdgeInsets.only(top: 10.0, bottom: 10.0, left: 50.0, right: 50.0),
+                child: Form(
+                  child: Column(
+                    children: <Widget>[
+                      Expanded(
+                        child: Container(
+                          child: ToggleButtons(
+                            fillColor: Color(0xff246c55),
+                            children: <Widget>[
+                              SizedBox(
+                                width: 100.0,
+                                child: Text("Income", textAlign: TextAlign.center,),
+                              ),
+                              SizedBox(
+                                width: 100.0,
+                                child: Text("Expense", textAlign: TextAlign.center,),
+                              ),
+                            ],
+                            selectedColor: Color(0xff90b4aa),
+                            onPressed: (int index){
+                              setState(() {
+                                _recordType = index;
+
+                                for(int i = 0; i < _selections.length; i++){
+                                  if(i == index){
+                                    _selections[i] = true;
+                                  }else{
+                                    _selections[i] = false;
+                                  }
+                                }    
+                              });
+                            },
+                            isSelected: _selections,
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _controller1,
+                          decoration: InputDecoration(
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xff555555),
+                              ),
                             ),
-                            SizedBox(
-                              width: 100.0,
-                              child: Text("Expense", textAlign: TextAlign.center,),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xff246c55),
+                                width: 2.0,
+                              ),                            
+                            ),
+                            focusColor: Color(0xff246c55),
+                            focusedErrorBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xff246c55),
+                              ),                            
+                            ),
+                            labelText: "Notes",
+                            labelStyle: TextStyle(
+                              color: Color(0xff555555),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          controller: _controller2,
+                          keyboardType: TextInputType.number,
+                          decoration: InputDecoration(
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xff555555),
+                              ),
+                            ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xff246c55),
+                                width: 2.0,
+                              ),                            
+                            ),
+                            focusColor: Color(0xff246c55),
+                            focusedErrorBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xff246c55),
+                              ),                            
+                            ),
+                            labelText: "Amount",
+                            labelStyle: TextStyle(
+                              color: Color(0xff555555),
+                            ),
+                          ),
+                        ),
+                      ),
+                      Expanded(
+                        child: Row(
+                          children: <Widget>[
+                            Expanded(
+                              child: TextFormField(
+                                readOnly: true,
+                                showCursor: true,
+                                controller: _controller3,
+                                onTap: (){
+                                showCupertinoModalPopup(
+                                  context: context, 
+                                  builder: (context) => 
+                                    Column(
+                                      children: <Widget>[
+                                        Expanded(
+                                          child: Container(color: Colors.transparent,),
+                                        ),
+                                        Expanded(
+                                          child: Column(
+                                            children: <Widget>[
+                                              Container(
+                                                height: 50.0,
+                                                color: Color(0xffffffff),
+                                                child: Row(
+                                                  children: <Widget>[
+                                                    Expanded(
+                                                      child: FlatButton(
+                                                        color: Color(0xffffffff),
+                                                        child: Text("Cancel"),
+                                                        onPressed: (){
+                                                          Navigator.of(context).pop(false);
+                                                        },
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      child: FlatButton(
+                                                          child: Text(
+                                                            'DONE',
+                                                          ),
+                                                        onPressed: (){
+                                                          _convertedDate = formatDate(DateTime(int.parse('${_date.year}') , int.parse('${_date.month}') , int.parse('${_date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
+                                                          _controller3.text = formatDate(DateTime(int.parse('${_date.year}') , int.parse('${_date.month}') , int.parse('${_date.day}')), [yyyy , ' ' , M , ' ' , dd]).toString();
+                                                          Navigator.of(context).pop(false);
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 5,
+                                                child: CupertinoDatePicker(
+                                                  backgroundColor: Color(0xffffffff),
+                                                  mode: CupertinoDatePickerMode.date,
+                                                  use24hFormat: true,
+                                                  initialDateTime: _date,
+                                                  onDateTimeChanged: (date){
+                                                    setState(() {
+                                                      _date = date;
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                decoration: InputDecoration(
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xff555555),
+                                    ),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xff246c55),
+                                      width: 2.0,
+                                    ),                            
+                                  ),
+                                  focusColor: Color(0xff246c55),
+                                  focusedErrorBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xff246c55),
+                                    ),                            
+                                  ),
+                                  labelText: "Date",
+                                  labelStyle: TextStyle(
+                                    color: Color(0xff555555),
+                                  ),
+                                ),
+                              ),
+                            ),
+                            SizedBox(width: 10.0),
+                            Expanded(
+                              child: TextFormField(
+                                readOnly: true,
+                                showCursor: true,
+                                controller: _controller4,
+                                onTap: (){
+                                showCupertinoModalPopup(
+                                  context: context, 
+                                  builder: (context) => 
+                                    Column(
+                                      children: <Widget>[
+                                        Expanded(
+                                          child: Container(color: Colors.transparent,),
+                                        ),
+                                        Expanded(
+                                          child: Column(
+                                            children: <Widget>[
+                                              Container(
+                                                height: 50.0,
+                                                color: Color(0xffffffff),
+                                                child: Row(
+                                                  children: <Widget>[
+                                                    Expanded(
+                                                      child: FlatButton(
+                                                        color: Color(0xffffffff),
+                                                        child: Text("Cancel"),
+                                                        onPressed: (){
+                                                          Navigator.of(context).pop(false);
+                                                        },
+                                                      ),
+                                                    ),
+                                                    Expanded(
+                                                      child: FlatButton(
+                                                        color: Color(0xffffffff),
+                                                        child: Text("Done"),
+                                                        onPressed: (){
+                                                          String formatDateTime(DateTime dateTime){
+                                                            String minute = (dateTime.minute).toString().padLeft(2, '0');
+                                                            String hour = (dateTime.hour).toString();
+                                                            return '$hour' + ':' + '$minute';
+                                                          }
+
+                                                          _convertedTime = 'T' + formatDateTime(_dateTime).toString() + ':00.000Z';
+                                                          _controller4.text = formatDateTime(_dateTime).toString();
+                                                          Navigator.of(context).pop(false);
+                                                        },
+                                                      ),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ),
+                                              Expanded(
+                                                flex: 5,
+                                                child: CupertinoDatePicker(
+                                                  backgroundColor: Color(0xffffffff),
+                                                  mode: CupertinoDatePickerMode.time,
+                                                  use24hFormat: true,
+                                                  initialDateTime: _dateTime,
+                                                  onDateTimeChanged: (dateTime){
+                                                    setState(() {
+                                                      _dateTime = dateTime;
+                                                    });
+                                                  },
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  );
+                                },
+                                decoration: InputDecoration(
+                                  enabledBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xff555555),
+                                    ),
+                                  ),
+                                  focusedBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xff246c55),
+                                      width: 2.0,
+                                    ),                            
+                                  ),
+                                  focusColor: Color(0xff246c55),
+                                  focusedErrorBorder: UnderlineInputBorder(
+                                    borderSide: BorderSide(
+                                      color: Color(0xff246c55),
+                                    ),                            
+                                  ),
+                                  labelText: "Time",
+                                  labelStyle: TextStyle(
+                                    color: Color(0xff555555),
+                                  ),
+                                ),
+                              ),
                             ),
                           ],
-                          selectedColor: Color(0xff90b4aa),
-                          onPressed: (int index){
-                            setState(() {
-                              _recordType = index;
-                              print('The recordType is $_recordType');
+                        ),
+                      ),
+                      Expanded(
+                        child: TextFormField(
+                          readOnly: true,
+                          showCursor: true,
+                          controller: _controller5,
+                          onTap: () async{
+                            final result = await Navigator.of(context).push(MaterialPageRoute(builder: (context) => Records(listCategory: listCategory,)));
 
-                              for(int i = 0; i < _selections.length; i++){
-                                if(i == index){
-                                  _selections[i] = true;
-                                }else{
-                                  _selections[i] = false;
-                                }
-                              }    
-                            });
+                            if(result != true){
+                              _controller5.text = result[0].toString();
+                              _categoryId = result[1];
+                              listCategory = result[2];
+                            }
+
                           },
-                          isSelected: _selections,
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _controller1,
-                        decoration: InputDecoration(
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xff555555),
-                            ),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xff246c55),
-                              width: 2.0,
-                            ),                            
-                          ),
-                          focusColor: Color(0xff246c55),
-                          focusedErrorBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xff246c55),
-                            ),                            
-                          ),
-                          labelText: "Notes",
-                          labelStyle: TextStyle(
-                            color: Color(0xff555555),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: TextFormField(
-                        controller: _controller2,
-                        keyboardType: TextInputType.number,
-                        decoration: InputDecoration(
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xff555555),
-                            ),
-                          ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xff246c55),
-                              width: 2.0,
-                            ),                            
-                          ),
-                          focusColor: Color(0xff246c55),
-                          focusedErrorBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xff246c55),
-                            ),                            
-                          ),
-                          labelText: "Amount",
-                          labelStyle: TextStyle(
-                            color: Color(0xff555555),
-                          ),
-                        ),
-                      ),
-                    ),
-                    Expanded(
-                      child: Row(
-                        children: <Widget>[
-                          Expanded(
-                            child: TextFormField(
-                              readOnly: true,
-                              showCursor: true,
-                              controller: _controller3,
-                              onTap: (){
-                              showCupertinoModalPopup(
-                                context: context, 
-                                builder: (context) => 
-                                  Column(
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: Container(color: Colors.transparent,),
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          children: <Widget>[
-                                            Container(
-                                              height: 50.0,
-                                              color: Color(0xffffffff),
-                                              child: Row(
-                                                children: <Widget>[
-                                                  Expanded(
-                                                    child: FlatButton(
-                                                      color: Color(0xffffffff),
-                                                      child: Text("Cancel"),
-                                                      onPressed: (){
-                                                        Navigator.of(context).pop(false);
-                                                      },
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: FlatButton(
-                                                        child: Text(
-                                                          'DONE',
-                                                        ),
-                                                      onPressed: (){
-                                                        _convertedDate = formatDate(DateTime(int.parse('${_date.year}') , int.parse('${_date.month}') , int.parse('${_date.day}')), [yyyy , '-' , mm , '-' , dd]).toString();
-                                                        _controller3.text = formatDate(DateTime(int.parse('${_date.year}') , int.parse('${_date.month}') , int.parse('${_date.day}')), [yyyy , ' ' , M , ' ' , dd]).toString();
-                                                        Navigator.of(context).pop(false);
-                                                      },
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 5,
-                                              child: CupertinoDatePicker(
-                                                backgroundColor: Color(0xffffffff),
-                                                mode: CupertinoDatePickerMode.date,
-                                                use24hFormat: true,
-                                                initialDateTime: _date,
-                                                onDateTimeChanged: (date){
-                                                  setState(() {
-                                                    _date = date;
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                              decoration: InputDecoration(
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xff555555),
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xff246c55),
-                                    width: 2.0,
-                                  ),                            
-                                ),
-                                focusColor: Color(0xff246c55),
-                                focusedErrorBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xff246c55),
-                                  ),                            
-                                ),
-                                labelText: "Date",
-                                labelStyle: TextStyle(
-                                  color: Color(0xff555555),
-                                ),
+                          decoration: InputDecoration(
+                            enabledBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xff555555),
                               ),
                             ),
-                          ),
-                          SizedBox(width: 10.0),
-                          Expanded(
-                            child: TextFormField(
-                              readOnly: true,
-                              showCursor: true,
-                              controller: _controller4,
-                              onTap: (){
-                              showCupertinoModalPopup(
-                                context: context, 
-                                builder: (context) => 
-                                  Column(
-                                    children: <Widget>[
-                                      Expanded(
-                                        child: Container(color: Colors.transparent,),
-                                      ),
-                                      Expanded(
-                                        child: Column(
-                                          children: <Widget>[
-                                            Container(
-                                              height: 50.0,
-                                              color: Color(0xffffffff),
-                                              child: Row(
-                                                children: <Widget>[
-                                                  Expanded(
-                                                    child: FlatButton(
-                                                      color: Color(0xffffffff),
-                                                      child: Text("Cancel"),
-                                                      onPressed: (){
-                                                        Navigator.of(context).pop(false);
-                                                      },
-                                                    ),
-                                                  ),
-                                                  Expanded(
-                                                    child: FlatButton(
-                                                      color: Color(0xffffffff),
-                                                      child: Text("Done"),
-                                                      onPressed: (){
-                                                        String formatDateTime(DateTime dateTime){
-                                                          String minute = (dateTime.minute).toString().padLeft(2, '0');
-                                                          String hour = (dateTime.hour).toString();
-                                                          return '$hour' + ':' + '$minute';
-                                                        }
-
-                                                        _convertedTime = 'T' + formatDateTime(_dateTime).toString() + ':00.000Z';
-                                                        _controller4.text = formatDateTime(_dateTime).toString();
-                                                        Navigator.of(context).pop(false);
-                                                      },
-                                                    ),
-                                                  ),
-                                                ],
-                                              ),
-                                            ),
-                                            Expanded(
-                                              flex: 5,
-                                              child: CupertinoDatePicker(
-                                                backgroundColor: Color(0xffffffff),
-                                                mode: CupertinoDatePickerMode.time,
-                                                use24hFormat: true,
-                                                initialDateTime: _dateTime,
-                                                onDateTimeChanged: (dateTime){
-                                                  setState(() {
-                                                    _dateTime = dateTime;
-                                                  });
-                                                },
-                                              ),
-                                            ),
-                                          ],
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                );
-                              },
-                              decoration: InputDecoration(
-                                enabledBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xff555555),
-                                  ),
-                                ),
-                                focusedBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xff246c55),
-                                    width: 2.0,
-                                  ),                            
-                                ),
-                                focusColor: Color(0xff246c55),
-                                focusedErrorBorder: UnderlineInputBorder(
-                                  borderSide: BorderSide(
-                                    color: Color(0xff246c55),
-                                  ),                            
-                                ),
-                                labelText: "Time",
-                                labelStyle: TextStyle(
-                                  color: Color(0xff555555),
-                                ),
-                              ),
+                            focusedBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xff246c55),
+                                width: 2.0,
+                              ),                            
                             ),
-                          ),
-                        ],
-                      ),
-                    ),
-                    Expanded(
-                      child: TextFormField(
-                        readOnly: true,
-                        showCursor: true,
-                        controller: _controller5,
-                        onTap: () async{
-                          final result = await Navigator.of(context).push(MaterialPageRoute(builder: (value) => Records(listCategory: listCategory,)));
-
-                          if(result != true){
-                            _controller5.text = result[0].toString();
-                            _categoryId = result[1];
-                            listCategory = result[2];
-                          }
-
-                        },
-                        decoration: InputDecoration(
-                          enabledBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
+                            focusColor: Color(0xff246c55),
+                            focusedErrorBorder: UnderlineInputBorder(
+                              borderSide: BorderSide(
+                                color: Color(0xff246c55),
+                              ),                            
+                            ),
+                            labelText: "Category",
+                            labelStyle: TextStyle(
                               color: Color(0xff555555),
                             ),
                           ),
-                          focusedBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xff246c55),
-                              width: 2.0,
-                            ),                            
-                          ),
-                          focusColor: Color(0xff246c55),
-                          focusedErrorBorder: UnderlineInputBorder(
-                            borderSide: BorderSide(
-                              color: Color(0xff246c55),
-                            ),                            
-                          ),
-                          labelText: "Category",
-                          labelStyle: TextStyle(
-                            color: Color(0xff555555),
-                          ),
                         ),
                       ),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-          Expanded(
-            child: Container(
+            Expanded(
+              child: Container(
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
